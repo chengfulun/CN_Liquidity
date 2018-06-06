@@ -1,0 +1,5 @@
+#!/bin/bash -login
+
+module load cplex
+
+make folder=$1 samps=$2 simC

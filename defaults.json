@@ -1,0 +1,20 @@
+{
+        "configuration":{
+        "numNodes": 31,
+        "smoothing": 1,
+        "numIR": 2,
+        "epochs": 100,
+        "FFR": 0.02,
+        "wealth": 10,
+        "deposits": 40,
+        "dShock": 150,
+        "CR": 0.1,
+        "EAR": 0.1,
+        "asset_vol": 0.13,
+        "dRate": 0.1,
+        "haircut": 0.8,
+        "initR": 0.001,
+        "initV": 0.0013,
+        "maturity": 2
+    }
+}
