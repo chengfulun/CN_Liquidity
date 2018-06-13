@@ -245,7 +245,7 @@ double Node::getCredit(){
 double Node::getDebt(){
 	double temp = 0;
 	for (auto &dOut : atomicEdge_out){
-		if (dOut.second->isDebt){
+		if (dOut.second->isDebt && not dOut.second->nodeFrom->defaulted){
 			temp += dOut.second->capacity;
 		}
 	}
