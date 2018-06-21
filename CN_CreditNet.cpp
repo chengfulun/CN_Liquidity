@@ -323,9 +323,11 @@ void CreditNet::resultsOut(){
 	for (int i = 0; i< nodeNum - 1; i++){
 		std::vector<double> adjrec(nodeNum - 1, 0.0);
 		for (auto &eIn : this->nodes[i]->edge_in){
-			for (auto &cEdge : eIn.second->singleCreditEdges){
-				for (auto &debtEdge : cEdge->debt_current){
-					adjrec[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity;
+			if(not eIn.second->nodeFrom->defaulted){
+				for (auto &cEdge : eIn.second->singleCreditEdges){
+					for (auto &debtEdge : cEdge->debt_current){
+						adjrec[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity;
+					}
 				}
 			}
 		}
@@ -494,7 +496,7 @@ int CreditNet::shockPay(double alpha, bool crisis){
 
 	for (int f = 0;f<nodeNum ;f++){
 		int ff = randix[f];
-		if( ff != marketId and not this->nodes[ff]->defaulted){
+		if( ff != marketId && not this->nodes[ff]->defaulted){
 			for (auto& cPay : this->nodes[ff]->creditPayOut){
 				// cout<<"pay credit"<<endl;
 				double current_crate = cPay.second.first ;
