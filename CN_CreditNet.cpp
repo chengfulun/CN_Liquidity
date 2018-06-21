@@ -537,7 +537,7 @@ int CreditNet::shockPay(double alpha, bool crisis){
 		}		
 	}
 	for(int dd = 0; dd < nodeNum - 1; dd++){
-		if(not this->nodes[dd]->defaulted && this->nodes[dd]->getWealth(haircut) <= 0.0){
+		if(not this->nodes[dd]->defaulted && this->nodes[dd]->getWealth(haircut) < 0.0){
 			this->nodes[dd]->makeDefault();
 			defaultC+=1;
 			aDefaults[dd] +=1;
