@@ -228,6 +228,9 @@ double Node::getScrip(){
 	return temp;
 }
 
+/**
+ * Calculate total incoming credit (0 of default)
+ */
 double Node::getCredit(){
 	if(defaulted){
 		return 0.0;
@@ -252,6 +255,12 @@ double Node::getDebt(){
 	return temp;
 }
 
+/**
+ * Calculates three variables described in section 3.4 of AI3 paper
+ * lambda: proportion of capital invested that maximizes utility ,
+ * w_assets: the optimal proportion of investment allocated to assets
+ * folio_volume: actual maximum portfolio size (limited by leverage)
+ */
 void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double mlimit){
 	// double E_debt = this->credit_returns_in;
 	// double sigma_sq_debt = this->credit_vol_in;
@@ -294,3 +303,10 @@ void Node::buyAssets(double amt, int mat){
 // void Node::payIR(){
 	
 // }
+
+/**
+ * Default prediction (logit model trained on previous simulations)
+ */
+// TODO TODO TODO
+// int Node::default_prob()
+

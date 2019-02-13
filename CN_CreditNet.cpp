@@ -171,20 +171,25 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 				// cout<<"credit returned "<<c_average<<endl;
 			// }			
 			 // = accumulate( volatilities.begin(), volatilities.end(), 0.0)/volatilities.size();
+
+			// calculates lambda* and alpha* in section 3.4 of AI3 paper
 			this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, c_average, cv_average, FFR, 1.0/(deposit_rate+0.00000000000000001));
 			if(verb){
 				cout<<"node "<< k << " theta "<<this->nodes[k]->theta<<" portfolio size "<<this->nodes[k]->folio_volume<<" lambda "<<this->nodes[k]->lambda<<" assets "<<this->nodes[k]->w_assets<<" wealth "<<this->nodes[k]->getWealth(haircut)<<endl;
 				cout<<"want assets "<<this->nodes[k]->getWealth(haircut)*this->nodes[k]->lambda*this->nodes[k]->w_assets<<endl;
-			
-			}				
+			}
+
+			// calculate actual asset goal
 			double asset_target = this->nodes[k]->folio_volume*this->nodes[k]->w_assets;
 			// if(overleveraged == 0){
+			// calculate actual asset purchase amount (limit by paying ability)
 			double fail = payAsset(k, this->marketId, asset_target, "MAX_FLOW", transactionCounter++, "ASSET",0.0,deposit_rate,haircut);
 			if(verb){
 				cout<<"paid assets "<<fail<<endl;
 			}
 			// this->nodes[i]->assets.push_back(std::make_pair(maturity,iAmount));
 
+			// execute purchase	
 			if(fail > 0){
 				this->nodes[k]->buyAssets(fail,asset_maturity);
 				// cout<<"asset shortage "<<asset_target - fail<<endl;
@@ -200,7 +205,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	for (int jjj = 0; jjj < nodeNum -1; jjj++){
 		// this->nodes[jjj]->print();
 		if(not this->nodes[jjj]->defaulted){
-			cReturns[jjj] = this->nodes[jjj]->getCredit();			
+			cReturns[jjj] = this->nodes[jjj]->getCredit();	// ???
 		}
 	}
 	if(verbose){
@@ -229,6 +234,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 
 			}			
 		}
+		// for banks just default
 		if( this->nodes[j]->defaulted && not this->nodes[j]->been_defaulted){
 			for(auto& it : this->nodes[j]->atomicEdge_out){
 				int fromId = it.second->nodeFrom->nodeId;
