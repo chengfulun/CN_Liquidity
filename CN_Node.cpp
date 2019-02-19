@@ -328,14 +328,14 @@ double Node::defaultProb(){
 	// coeff_cash_lag = -0.001802;
 	// coeff_assets_lag = 0.005801;
 	
-	output = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
+	double output = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
 			- 0.128509 * this->getWealth() + 0.001108 * //where is leverage
 		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
 		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
 
 	// check if lags and current differs
 	if (this->updateLags()){
-		return -1.0
+		return -1.0;
 	}else{
 		return output;
 	}
@@ -348,7 +348,7 @@ double Node::defaultProb(){
 bool Node::updateLags(){
 	// check if they are updated
 	if (this->lag_wealth == this->getWealth() && this->lag_deposits == this->deposits
-		&& this->lag_cash == this->getCash() && this->lag_sumAssets = this->sumAssets()){
+		&& this->lag_cash == this->getCash() && this->lag_sumAssets == this->sumAssets()){
 		return false; 
 	}else{
 		this->lag_wealth = this->getWealth();
