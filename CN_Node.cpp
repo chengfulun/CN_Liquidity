@@ -29,6 +29,11 @@ Node::Node(int id){
 	this->creditReturn = 0;
 	this->creditVol = 0;
 	this->folio_volume = 0.0;
+
+	this->lag_wealth = -1.0;
+	this->lag_deposits = -1.0;
+	this->lag_cash = -1.0;
+	this->lag_sumAssets = -1.0;
 }
 
 
@@ -306,7 +311,53 @@ void Node::buyAssets(double amt, int mat){
 
 /**
  * Default prediction (logit model trained on previous simulations)
+ * Trained on: 300 simulations, 0 interest rate, balanced
+ * LASSO regularization
+ * Inverse of regularization strength = 0.0007
+ * 
+ * return -1.0 if believed to be called twice in one period
  */
-// TODO TODO TODO
-// int Node::default_prob()
+double Node::defaultProb(){
+	// coeff_deposits = 0.000982;
+	// coeff_cash = -0.003140;
+	// coeff_assets = 0.033246;
+	// coeff_wealth = -0.128509;
+	// coeff_leverage = 0.001108;
+	// coeff_wealth_lag = -0.005691;
+	// coeff_deposits_lag = 0.000325;
+	// coeff_cash_lag = -0.001802;
+	// coeff_assets_lag = 0.005801;
+	
+	output = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
+			- 0.128509 * this->getWealth() + 0.001108 * //where is leverage
+		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
+		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
+
+	// check if lags and current differs
+	if (this->updateLags()){
+		return -1.0
+	}else{
+		return output;
+	}
+}
+
+/**
+ * update the lags if lags differ from current
+ * I want to figure out a way to check whether the variables are updated 
+ */
+bool Node::updateLags(){
+	// check if they are updated
+	if (this->lag_wealth == this->getWealth() && this->lag_deposits == this->deposits
+		&& this->lag_cash == this->getCash() && this->lag_sumAssets = this->sumAssets()){
+		return false; 
+	}else{
+		this->lag_wealth = this->getWealth();
+		this->lag_deposits = this->deposits;
+		this->lag_cash = this->getCash();
+		this->lag_sumAssets = this->sumAssets();
+		return true;
+	}
+}
+
+
 

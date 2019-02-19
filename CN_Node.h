@@ -17,6 +17,13 @@ class WidgetNode;
 
 class Node{
 
+private:
+	int lag_wealth;
+	int lag_deposits;
+	int lag_cash;
+	int lag_sumAssets;
+	bool updateLags();
+
 public:
 	int nodeId;
 	int transactionNum;
@@ -83,6 +90,7 @@ public:
 	double folio_volume; 
 	int been_defaulted = 0;
 	double getOwe();
+	double defaultProb();
 
 };
 
