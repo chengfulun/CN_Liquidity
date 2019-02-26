@@ -97,6 +97,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	// // }
 
 	// credits_last=credits;
+	// update credits
 	for(int cc = 0; cc<nodeNum; cc++){
 		if (not this->nodes[cc]->defaulted){
 			credits_last[cc] = credits[cc];			
@@ -132,34 +133,61 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 			// double w = wealths[j];
 			int asset_maturity = maturity;
 		
-			//update debt payouts
+			//update debt payouts			
 
-			double c_average = 0.0;
-			double cv_average = 0.0;
-			double wsum = 0.0;
-			double wsum2 = 0.0;			
-			double rsize = returns.size()-2.0;
+			// TODO calculate mu and sigma of credit
+			double credit_mu = 0.0;
+			double credit_sigma = 0.0;
+			double c_weight = 0.0;
+			double rsize = returns.size()-2.0; // number of (non-default ???) banks
 			for (int ii = 0 ; ii < nodeNum; ii++){
 				if(ii!=marketId && ii!=k){
-					// c_average += (double)returns[ii]/rsize;
-					// cv_average += (double)volatilities[ii]/rsize;
-					double c_issue = credits_last[ii];
-					// this->nodes[ii]->getCredit() + this->nodes[ii]->getDebt();
-					c_average += (double)returns[ii]*c_issue/rsize;
-					cv_average += (double)volatilities[ii]*c_issue*c_issue/rsize;
-					wsum += credits_last[ii];
-					wsum2 += credits_last[ii]*credits_last[ii];
+					double c_issue = credits_last[ii]; // credit issued to bank ii in the past
+					c_weight += c_issue;
+					pr_not_default = 1-this->nodes[ii]->defaultProb;
+					var_not_default = pr_not_default * (1-pr_not_default);
+					// for credit_mu calculation
+					credit_mu += c_issue * pr_not_default * (double)returns[ii]*c_issue;
+					// for credit_sigma calculation
+					credit_sigma += c_issue * ( var_not_default * (double)volatilities[ii] 
+						+ var_not_default * (double)returns[ii] + pr_not_default * (double)returns[ii]);
 				}
 			}
-
-			if(wsum == 0){
-				c_average = initR;
-				cv_average = initVol;
+			if(c_weight == 0){
+				credit_mu = initR;
+				credit_sigma = initVol;
 			}
 			else{
-				c_average = c_average / (wsum);
-				cv_average = cv_average / (  wsum2);				
+				credit_mu = credit_mu / c_weight;
+				credit_sigma = credit_sigma / c_weight;				
 			}
+
+			// calculate mu and sigma of credit
+			// double c_average = 0.0;
+			// double cv_average = 0.0;
+			// double wsum = 0.0;
+			// double wsum2 = 0.0;			
+			// double rsize = returns.size()-2.0; // number of (non-default ???) banks
+			// for (int ii = 0 ; ii < nodeNum; ii++){
+			// 	if(ii!=marketId && ii!=k){
+			// 		// c_average += (double)returns[ii]/rsize;
+			// 		// cv_average += (double)volatilities[ii]/rsize;
+			// 		double c_issue = credits_last[ii]; // how much credit issued last period ???
+			// 		// this->nodes[ii]->getCredit() + this->nodes[ii]->getDebt();
+			// 		c_average += (double)returns[ii]*c_issue/rsize;
+			// 		cv_average += (double)volatilities[ii]*c_issue*c_issue/rsize;
+			// 		wsum += credits_last[ii];
+			// 		wsum2 += credits_last[ii]*credits_last[ii];
+			// 	}
+			// }
+			// if(wsum == 0){
+			// 	c_average = initR;
+			// 	cv_average = initVol;
+			// }
+			// else{
+			// 	c_average = c_average / (wsum);
+			// 	cv_average = cv_average / (  wsum2);				
+			// }
 
 
 			if(verb){
@@ -174,6 +202,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 
 			// calculates lambda* and alpha* in section 3.4 of AI3 paper
 			this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, c_average, cv_average, FFR, 1.0/(deposit_rate+0.00000000000000001));
+			// this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, TODO, TODO, FFR, 1.0/(deposit_rate+0.00000000000000001));
 			if(verb){
 				cout<<"node "<< k << " theta "<<this->nodes[k]->theta<<" portfolio size "<<this->nodes[k]->folio_volume<<" lambda "<<this->nodes[k]->lambda<<" assets "<<this->nodes[k]->w_assets<<" wealth "<<this->nodes[k]->getWealth(haircut)<<endl;
 				cout<<"want assets "<<this->nodes[k]->getWealth(haircut)*this->nodes[k]->lambda*this->nodes[k]->w_assets<<endl;
@@ -205,13 +234,17 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	for (int jjj = 0; jjj < nodeNum -1; jjj++){
 		// this->nodes[jjj]->print();
 		if(not this->nodes[jjj]->defaulted){
-			cReturns[jjj] = this->nodes[jjj]->getCredit();	// ???
+			cReturns[jjj] = this->nodes[jjj]->getCredit();
 		}
 	}
 	if(verbose){
 		this->resultsOut();
 	}
 	for (int j = 0; j < nodeNum - 1; j++){
+
+		// for non-default banks
+		// clear all the debt it lend out to non-default banks
+		// route something ???
 		if(not this->nodes[j]->defaulted){
 			for(auto& it : this->nodes[j]->atomicEdge_out){
 				int fromId = it.second->nodeFrom->nodeId;
@@ -234,7 +267,10 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 
 			}			
 		}
-		// for banks just default
+
+		// for banks just defaulted
+		// clear its debt ???
+		// route that somewhere ???
 		if( this->nodes[j]->defaulted && not this->nodes[j]->been_defaulted){
 			for(auto& it : this->nodes[j]->atomicEdge_out){
 				int fromId = it.second->nodeFrom->nodeId;
@@ -567,10 +603,14 @@ int CreditNet::shockPay(double alpha, bool crisis){
 	return defaultC;		
 }
 
+/*
+ * Update variables: returns, volatilities 
+ */
 void CreditNet::updateReturns(){
 	if(ntrials <3){
 		for(int i = 0; i<nodeNum;i++){
-			if(not this->nodes[i]->defaulted){
+			if(not this->nodes[i]->defaulted){ 
+				// if not default, in first 3 periods, keep returns & volatilities at initial value
 				returns[i] = this->initR;
 				volatilities[i] = initVol;				
 			}
@@ -593,7 +633,6 @@ void CreditNet::updateReturns(){
 				// }
 				else{
 					delta = (cReturns[i] - credits_last[i])/(credits_last[i] + 0.00000000000001) - returns[i];
-
 				}
 				// if(cReturns[i] > 0){
 					// cout<<"credit returns "<<cReturns[i]<<" credit expenditure "<<credits_last[i]<<endl;
@@ -935,6 +974,10 @@ int CreditNet::genInterBankTrans(double request, string mode, int transSeqNum){
 	// cout << " fail " << endl;
 	return 1;
 }
+
+/**
+ * return 1 if over-leveraged else 0
+ */
 int CreditNet::checkCollateral(int fid1){
 	double col = this->nodes[fid1]->getCollateral(this->deposit_rate);
 	// cout<<"got collateral"<<endl;
