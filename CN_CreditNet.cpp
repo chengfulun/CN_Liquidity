@@ -201,8 +201,8 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 			 // = accumulate( volatilities.begin(), volatilities.end(), 0.0)/volatilities.size();
 
 			// calculates lambda* and alpha* in section 3.4 of AI3 paper
-			this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, c_average, cv_average, FFR, 1.0/(deposit_rate+0.00000000000000001));
-			// this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, TODO, TODO, FFR, 1.0/(deposit_rate+0.00000000000000001));
+			// this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, c_average, cv_average, FFR, 1.0/(deposit_rate+0.00000000000000001));
+			this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, credit_mu, credit_sigma, FFR, 1.0/(deposit_rate+0.00000000000000001));
 			if(verb){
 				cout<<"node "<< k << " theta "<<this->nodes[k]->theta<<" portfolio size "<<this->nodes[k]->folio_volume<<" lambda "<<this->nodes[k]->lambda<<" assets "<<this->nodes[k]->w_assets<<" wealth "<<this->nodes[k]->getWealth(haircut)<<endl;
 				cout<<"want assets "<<this->nodes[k]->getWealth(haircut)*this->nodes[k]->lambda*this->nodes[k]->w_assets<<endl;
