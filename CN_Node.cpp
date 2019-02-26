@@ -91,6 +91,12 @@ void Node::makeLeveraged(bool status){
 	}
 }
 
+// I hope this calculates the leverage
+double Node::getLeverage(){
+	return this->getWealth(0.8) / (this->getDebt() + deposits);
+
+}
+
 void Node::print(){
 	cout << "Node " << this->nodeId << endl;
 	for (auto &it : edge_in){
@@ -359,6 +365,3 @@ bool Node::updateLags(){
 		return true;
 	}
 }
-
-
-
