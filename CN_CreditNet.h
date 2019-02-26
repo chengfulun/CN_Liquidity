@@ -31,8 +31,8 @@ public:
 	void grabCollateral(int fid, double amt);
 	int pay(int fid1, int fid2, double amt, string mode, int transSeqNum);
 	int payCollateral(int fid, double amt);
-	vector<double> returns;
-	vector<double> volatilities;
+	vector<double> returns; // I hope this is CR in 3.6
+	vector<double> volatilities; // I hope this is CV in 3.6
 	vector<double> wealths;
 	vector<double> credits;
 	vector<double> credits_last;
