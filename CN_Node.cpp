@@ -335,6 +335,7 @@ double Node::defaultProb(){
 
 	// check if lags and current differs
 	if (this->updateLags()){
+		cout<<"something is wrong with Node:defaultProb";
 		return -1.0;
 	}else{
 		return output;
