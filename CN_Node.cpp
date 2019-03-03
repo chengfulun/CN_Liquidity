@@ -335,7 +335,7 @@ double Node::defaultProb(){
 	// coeff_assets_lag = 0.005801;
 	
 	double output = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
-			- 0.128509 * this->getWealth() + 0.001108 * //where is leverage
+			- 0.128509 * this->getWealth() + 0.001108 * this->getLeverage()
 		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
 		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
 
