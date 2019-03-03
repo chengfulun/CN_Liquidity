@@ -163,8 +163,8 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 			}
 
 			// calculate mu and sigma of credit
-			// double c_average = 0.0;
-			// double cv_average = 0.0;
+			// double c_average = 0.0; // credit return
+			// double cv_average = 0.0; // credit volatility 
 			// double wsum = 0.0;
 			// double wsum2 = 0.0;			
 			// double rsize = returns.size()-2.0; // number of (non-default ???) banks
@@ -976,7 +976,9 @@ int CreditNet::genInterBankTrans(double request, string mode, int transSeqNum){
 }
 
 /**
- * return 1 if over-leveraged else 0
+ * check if over-leveraged and update status related to leverage
+ * w: wealth
+ * col: total sum collateral requirements
  */
 int CreditNet::checkCollateral(int fid1){
 	double col = this->nodes[fid1]->getCollateral(this->deposit_rate);

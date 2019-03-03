@@ -35,8 +35,8 @@ public:
 	vector<double> volatilities; // I hope this is CV in 3.6
 	vector<double> wealths;
 	vector<double> credits;
-	vector<double> credits_last;
-	vector<double> cReturns;
+	vector<double> credits_last; // how much credit at the beginning of the period
+	vector<double> cReturns; // possibly historical return 
 	vector<int> rDefaults;
 	vector<int> cDefaults;
 	vector<int> dDefaults;

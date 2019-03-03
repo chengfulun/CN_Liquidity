@@ -67,6 +67,10 @@ void Node::makeDefault(){
 	// this->creditPayOut.clear();
 }
 
+/**
+ * if status is True: check if each individual edge is over-leveraged
+ * if status is False: update so no edge is over-leveraged
+ */
 void Node::makeLeveraged(bool status){
 	if (status){
 		this->leveraged = true;
@@ -91,10 +95,12 @@ void Node::makeLeveraged(bool status){
 	}
 }
 
-// I hope this calculates the leverage
+/**
+ * Calculates the leverage
+ * TODO do not hard code haircut=0.8
+ */
 double Node::getLeverage(){
 	return this->getWealth(0.8) / (this->getDebt() + deposits);
-
 }
 
 void Node::print(){
