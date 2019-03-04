@@ -56,8 +56,18 @@ vector<double> CreditNet::credit_shares(int ix){
 	for (int i = 0; i<returns.size(); i++){
 		if(not this->nodes[ix]->leveraged && i != ix && i != returns.size()-1 && not this->nodes[i]->defaulted){
 			// cout<<"wealth "<<wealths[i]<<" returns "<<returns[i]<<" vols "<<volatilities[i]<<endl;
+
 			// I think this is where sharpe ratio is calculated
-			double weight = max(0.0,wealths[i]*returns[i]/(sqrt(volatilities[i]))+0.00000000001);
+			// double weight = max(0.0,wealths[i]*returns[i]/(sqrt(volatilities[i]))+0.00000000001);
+			pr_not_default = 1-this->nodes[i]->defaultProb;
+			var_not_default = pr_not_default * (1-pr_not_default);
+			double weight = max(0.0, 0.00000000001+ pr_not_default * returns[i] /(
+										var_not_default * (double)volatilities[i] 
+										+ var_not_default * (double)returns[i] 
+										+ pr_not_default * (double)returns[i]
+									 )
+								);
+
 			// cout<<weight<<endl;
 			shares.push_back(weight);
 			sum += weight;
