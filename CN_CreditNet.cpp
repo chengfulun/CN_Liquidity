@@ -56,6 +56,7 @@ vector<double> CreditNet::credit_shares(int ix){
 	for (int i = 0; i<returns.size(); i++){
 		if(not this->nodes[ix]->leveraged && i != ix && i != returns.size()-1 && not this->nodes[i]->defaulted){
 			// cout<<"wealth "<<wealths[i]<<" returns "<<returns[i]<<" vols "<<volatilities[i]<<endl;
+			// I think this is where sharpe ratio is calculated
 			double weight = max(0.0,wealths[i]*returns[i]/(sqrt(volatilities[i]))+0.00000000001);
 			// cout<<weight<<endl;
 			shares.push_back(weight);
@@ -142,15 +143,21 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 			double rsize = returns.size()-2.0; // number of (non-default ???) banks
 			for (int ii = 0 ; ii < nodeNum; ii++){
 				if(ii!=marketId && ii!=k){
-					double c_issue = credits_last[ii]; // credit issued to bank ii in the past
-					c_weight += c_issue;
+					// this might not be right (the total credit I want) TODO
+					double c_issue = credits_last[ii]; // credit issued to bank ii at the start of period
+					
 					pr_not_default = 1-this->nodes[ii]->defaultProb;
 					var_not_default = pr_not_default * (1-pr_not_default);
 					// for credit_mu calculation
-					credit_mu += c_issue * pr_not_default * (double)returns[ii]*c_issue;
+					credit_mu += c_issue * pr_not_default * (double)returns[ii];
 					// for credit_sigma calculation
-					credit_sigma += c_issue * ( var_not_default * (double)volatilities[ii] 
-						+ var_not_default * (double)returns[ii] + pr_not_default * (double)returns[ii]);
+					credit_sigma += c_issue * (
+						var_not_default * (double)volatilities[ii] 
+						+ var_not_default * (double)returns[ii] 
+						+ pr_not_default * (double)returns[ii]
+					);
+					// add to total weight
+					c_weight += c_issue; 
 				}
 			}
 			if(c_weight == 0){
@@ -234,7 +241,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	for (int jjj = 0; jjj < nodeNum -1; jjj++){
 		// this->nodes[jjj]->print();
 		if(not this->nodes[jjj]->defaulted){
-			cReturns[jjj] = this->nodes[jjj]->getCredit();
+			cReturns[jjj] = this->nodes[jjj]->getCredit(); // incoming credit of nodes
 		}
 	}
 	if(verbose){
