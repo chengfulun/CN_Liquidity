@@ -36,8 +36,7 @@ public:
 	vector<double> wealths;
 	vector<double> credits;
 	vector<double> credits_last; // how much credit at the beginning of the period
-	vector<double> cReturns; // possibly historical return 
-	vector<int> rDefaults;
+	vector<double> cReturns; // credit return from current period ???
 	vector<int> cDefaults;
 	vector<int> dDefaults;
 	vector<int> aDefaults;
@@ -51,7 +50,7 @@ public:
 	void updateReturns();
 	int makeInvest(bool v, bool verb);
 	double makeLiquidate(int fid, double amt);
-	vector<double> credit_shares(int ix);
+	vector<double> credit_shares(int ix); // calculate how node ix split its credit among others
 	double payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double crate, double drate, double haircut);
 	double deposit_rate;
 	double haircut;
