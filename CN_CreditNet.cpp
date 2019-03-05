@@ -146,8 +146,8 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 					// this might not be right (the total credit I want) TODO
 					double c_issue = credits_last[ii]; // credit issued to bank ii at the start of period
 					
-					pr_not_default = 1-this->nodes[ii]->defaultProb;
-					var_not_default = pr_not_default * (1-pr_not_default);
+					double pr_not_default = 1-this->nodes[ii]->defaultProb();
+					double var_not_default = pr_not_default * (1-pr_not_default);
 					// for credit_mu calculation
 					credit_mu += c_issue * pr_not_default * (double)returns[ii];
 					// for credit_sigma calculation
@@ -198,7 +198,8 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 
 
 			if(verb){
-				cout<<"aggregate creturns "<<c_average<<" aggregate cvol "<<cv_average<<endl;
+			//	cout<<"aggregate creturns "<<c_average<<" aggregate cvol "<<cv_average<<endl;
+				cout<<"aggregate creturns "<<credit_mu<<" aggregate cvol "<<credit_sigma<<endl;
 			}
 			
 			// accumulate( returns.begin(), returns.end(), 0.0)/returns.size();

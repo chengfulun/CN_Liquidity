@@ -37,6 +37,7 @@ public:
 	vector<double> credits;
 	vector<double> credits_last; // how much credit at the beginning of the period
 	vector<double> cReturns; // credit return from current period ???
+	vector<int> rDefaults;
 	vector<int> cDefaults;
 	vector<int> dDefaults;
 	vector<int> aDefaults;
