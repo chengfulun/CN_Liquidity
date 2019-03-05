@@ -66,6 +66,7 @@ public:
 	void makeMarket();
 	double getScrip();
 	double getWealth(double haircut=0.8);
+	double getLeverage();
 	bool isMarket;
 	// void payIR();
 
