@@ -355,7 +355,7 @@ double Node::defaultProb(){
 	// }
 
 	// LESS SAFE
-	this->updateLags()
+	this->updateLags();
 	return output;
 }
 
