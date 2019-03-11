@@ -345,13 +345,18 @@ double Node::defaultProb(){
 		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
 		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
 
-	// check if lags and current differs
-	if (this->updateLags()){
-		cout<<"something is wrong with Node:defaultProb";
-		return -1.0;
-	}else{
-		return output;
-	}
+	// SAFER
+	// check if lags and current differs in case it is called twice in one period
+	// if (this->updateLags()){
+	// 	cout<<"something is wrong with Node:defaultProb";
+	// 	return -1.0;
+	// }else{
+	// 	return output;
+	// }
+
+	// LESS SAFE
+	this->updateLags()
+	return output;
 }
 
 /**
