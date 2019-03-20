@@ -342,11 +342,13 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 					// this->nodes[i]->print();
 					// credits_sq[i] += cap*cap;
 
-					cout<<credits[i];
-					cout.flush();
+					//cout<<credits[i]<<" "; //output credit line
+					//cout.flush(); // output credit line
+				}else{
+					//cout<<"X "; // output credit line
 				}
 			}				
-			cout<<endl;
+			//cout<<endl; // output credit line
 			
 
 
