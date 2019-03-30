@@ -364,6 +364,8 @@ double Node::defaultProb(){
  * I want to figure out a way to check whether the variables are updated 
  */
 bool Node::updateLags(){
+	cout << "updateLags" << this->getWealth() << this->deposits << this->getCash() << this->sumAssets() << endl; // debug
+
 	// check if they are updated
 	if (this->lag_wealth == this->getWealth() && this->lag_deposits == this->deposits
 		&& this->lag_cash == this->getCash() && this->lag_sumAssets == this->sumAssets()){
