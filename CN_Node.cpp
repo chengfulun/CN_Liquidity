@@ -97,10 +97,15 @@ void Node::makeLeveraged(bool status){
 
 /**
  * Calculates the leverage
+ * consistent with leverage definition for training the logit model
  * TODO do not hard code haircut=0.8
  */
 double Node::getLeverage(){
-	return this->getWealth(0.8) / (this->getDebt() + deposits);
+	double fullWealth = this->getWealth(1.0);
+	if ( fullWealth <= 0.0 ){
+		return 9999999.9;
+	}
+	return (this->getDebt() + deposits) / fullWealth;
 }
 
 void Node::print(){
@@ -346,6 +351,9 @@ double Node::defaultProb(){
 		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
 
 	double pred = exp(fitted) / (1 + exp(fitted)); // convert to probability
+	if (fitted > 300){
+		pred = 1.0;
+	}
 
 	// SAFER
 	// check if lags and current differs in case it is called twice in one period
