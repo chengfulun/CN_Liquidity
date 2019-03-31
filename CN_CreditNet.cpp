@@ -339,11 +339,11 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 					double cap = cShares[i] * this->nodes[j]->folio_volume*(1.0-this->nodes[j]->w_assets);
 					// if(cap<0){cout<<cap<< " is credit"<<endl;}
 					this->modifyCredit(j, i, max(0.0,cap));
-					this->nodes[i]->print();// output specific info
+					//this->nodes[i]->print();// output specific info
 					// credits_sq[i] += cap*cap;
 
-					// cout<<credits[i]<<" "; //output credit 
-					// cout.flush(); // output credit 
+					//cout<<credits[i]<<" "; //output credit 
+					//cout.flush(); // output credit 
 				}else{
 					//cout<<"X "; // output credit 
 				}

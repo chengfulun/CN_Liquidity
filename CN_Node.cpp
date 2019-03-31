@@ -353,7 +353,7 @@ double Node::defaultProb(){
 	double pred = exp(fitted) / (1 + exp(fitted)); // convert to probability
 	if (fitted > 300){
 		pred = 1.0;
-	}
+	}// prevent overflow
 
 	// SAFER
 	// check if lags and current differs in case it is called twice in one period
