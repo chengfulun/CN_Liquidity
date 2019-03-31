@@ -356,6 +356,9 @@ double Node::defaultProb(){
 
 	// LESS SAFE
 	this->updateLags();
+
+	cout << this->nodeId << " DefaultPred=" << output << endl; //debug
+
 	return output;
 }
 
@@ -364,7 +367,8 @@ double Node::defaultProb(){
  * I want to figure out a way to check whether the variables are updated 
  */
 bool Node::updateLags(){
-	cout << "updateLags" << this->getWealth() << this->deposits << this->getCash() << this->sumAssets() << endl; // debug
+	cout << this->nodeId << " UpdateLags: " << "W=" << this->getWealth() << " D=" << this->deposits 
+		<< " C=" << this->getCash() << " A=" << this->sumAssets() << endl; // debug
 
 	// check if they are updated
 	if (this->lag_wealth == this->getWealth() && this->lag_deposits == this->deposits
