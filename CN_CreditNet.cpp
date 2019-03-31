@@ -59,7 +59,7 @@ vector<double> CreditNet::credit_shares(int ix){
 
 			// I think this is where sharpe ratio is calculated
 			// double weight = max(0.0,wealths[i]*returns[i]/(sqrt(volatilities[i]))+0.00000000001);
-			double pr_not_default = 1-this->nodes[i]->defaultProb();
+			double pr_not_default = 1-this->nodes[i]->defaultProb;
 			double var_not_default = pr_not_default * (1-pr_not_default);
 			double weight = max(0.0, 0.00000000001+ pr_not_default * returns[i] /(
 										var_not_default * (double)volatilities[i] 
@@ -131,6 +131,9 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 		// 	cout<<j<<" already defaulted"<<endl;
 		// 	continue;
 		// }
+
+		this->nodes[kk]->updateDefaultProb();
+
 		if(forced && not this->nodes[k]->defaulted && this->fDefault > 0){
 			this->nodes[k]->makeDefault();
 			if(this->verb){
@@ -156,7 +159,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 					// this might not be right (the total credit I want) TODO
 					double c_issue = credits_last[ii]; // credit issued to bank ii at the start of period
 					
-					double pr_not_default = 1-this->nodes[ii]->defaultProb();
+					double pr_not_default = 1-this->nodes[ii]->defaultProb;
 					double var_not_default = pr_not_default * (1-pr_not_default);
 					// for credit_mu calculation
 					credit_mu += c_issue * pr_not_default * (double)returns[ii];

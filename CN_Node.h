@@ -91,8 +91,9 @@ public:
 	double folio_volume; 
 	int been_defaulted = 0;
 	double getOwe();
-	double defaultProb();
 
+	double defaultProb;
+	double updateDefaultProb();
 };
 
 #endif

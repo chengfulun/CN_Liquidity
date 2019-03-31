@@ -30,10 +30,11 @@ Node::Node(int id){
 	this->creditVol = 0;
 	this->folio_volume = 0.0;
 
-	this->lag_wealth = -1.0;
-	this->lag_deposits = -1.0;
-	this->lag_cash = -1.0;
-	this->lag_sumAssets = -1.0;
+	this->defaultProb = 0.5;
+	this->lag_wealth = 0.0;
+	this->lag_deposits = 0.0;
+	this->lag_cash = 0.0;
+	this->lag_sumAssets = 0.0;
 }
 
 
@@ -327,14 +328,14 @@ void Node::buyAssets(double amt, int mat){
 // }
 
 /**
- * Default prediction (logit model trained on previous simulations)
+ * Update Default Probability (logit model trained on previous simulations)
  * Trained on: 300 simulations, 0 interest rate, balanced
  * LASSO regularization
  * Inverse of regularization strength = 0.0007
  * 
- * return -1.0 if believed to be called twice in one period
+ * return -1.0 if believed to be called twice in one period (NO)
  */
-double Node::defaultProb(){
+double Node::updateDefaultProb(){
 	// coeff_deposits = 0.000982;
 	// coeff_cash = -0.003140;
 	// coeff_assets = 0.033246;
@@ -350,10 +351,10 @@ double Node::defaultProb(){
 		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
 		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
 
-	double pred = exp(fitted) / (1 + exp(fitted)); // convert to probability
-	if (fitted > 300){
-		pred = 1.0;
-	}// prevent overflow
+	double pred = 1.0;
+	if (fitted <= 100) { // prevent overflow
+		pred = exp(fitted) / (1 + exp(fitted)); // convert to probability
+	} 
 
 	// SAFER
 	// check if lags and current differs in case it is called twice in one period
@@ -369,8 +370,9 @@ double Node::defaultProb(){
 
 	cout << this->deposits << this->getCash() << this->sumAssets() << this->getWealth() << this->getLeverage()
 		    << this->lag_wealth << this->lag_deposits << this->lag_cash << this->lag_sumAssets; // debug
-
 	cout << this->nodeId << " Fitted=" << fitted << " DefaultPred=" << pred << endl; //debug
+
+	this->defaultProb = pred;
 
 	return pred;
 }
