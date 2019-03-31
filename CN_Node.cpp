@@ -340,10 +340,12 @@ double Node::defaultProb(){
 	// coeff_cash_lag = -0.001802;
 	// coeff_assets_lag = 0.005801;
 	
-	double output = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
+	double fitted = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
 			- 0.128509 * this->getWealth() + 0.001108 * this->getLeverage()
 		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
 		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
+
+	double pred = exp(fitted) / (1 + exp(fitted)); // convert to probability
 
 	// SAFER
 	// check if lags and current differs in case it is called twice in one period
@@ -357,9 +359,12 @@ double Node::defaultProb(){
 	// LESS SAFE
 	this->updateLags();
 
-	cout << this->nodeId << " DefaultPred=" << output << endl; //debug
+	cout << this->deposits << this->getCash() << this->sumAssets() << this->getWealth() << this->getLeverage()
+		    << this->lag_wealth << this->lag_deposits << this->lag_cash << this->lag_sumAssets; // debug
 
-	return output;
+	cout << this->nodeId << " Fitted=" << fitted << " DefaultPred=" << pred << endl; //debug
+
+	return pred;
 }
 
 /**
@@ -373,12 +378,14 @@ bool Node::updateLags(){
 	// check if they are updated
 	if (this->lag_wealth == this->getWealth() && this->lag_deposits == this->deposits
 		&& this->lag_cash == this->getCash() && this->lag_sumAssets == this->sumAssets()){
+		cout << this->nodeId << " NOT updated" << endl;
 		return false; 
 	}else{
 		this->lag_wealth = this->getWealth();
 		this->lag_deposits = this->deposits;
 		this->lag_cash = this->getCash();
 		this->lag_sumAssets = this->sumAssets();
+		cout << this->nodeId << " YES updated" << endl;
 		return true;
 	}
 }
