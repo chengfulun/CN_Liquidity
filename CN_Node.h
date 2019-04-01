@@ -20,7 +20,7 @@ class Node{
 private:
 	int lag_wealth;
 	int lag_deposits;
-	int lag_cash;
+	int lag_leverage;
 	int lag_sumAssets;
 	bool updateLags();
 

@@ -33,7 +33,7 @@ Node::Node(int id){
 	this->defaultProb = 0.5;
 	this->lag_wealth = 0.0;
 	this->lag_deposits = 0.0;
-	this->lag_cash = 0.0;
+	this->lag_leverage = 0.0;
 	this->lag_sumAssets = 0.0;
 }
 
@@ -336,20 +336,22 @@ void Node::buyAssets(double amt, int mat){
  * return -1.0 if believed to be called twice in one period (NO)
  */
 double Node::updateDefaultProb(){
-	// coeff_deposits = 0.000982;
-	// coeff_cash = -0.003140;
-	// coeff_assets = 0.033246;
-	// coeff_wealth = -0.128509;
-	// coeff_leverage = 0.001108;
-	// coeff_wealth_lag = -0.005691;
-	// coeff_deposits_lag = 0.000325;
-	// coeff_cash_lag = -0.001802;
-	// coeff_assets_lag = 0.005801;
+	// cash : -0.009588
+	// assets : 0.035445
+	// credit available : -0.018639
+	// wealth : -0.205266
+	// leverage : 0.019904
+	// wealth-lag : -0.094460
+	// deposits-lag : 0.006865
+	// assets-lag : -0.019053
+	// leverage-lag : -0.166881
+	// const : -0.785173
 	
-	double fitted = 0.000982 * this->deposits - 0.00314 * this->getCash() + 0.033246 * this->sumAssets()
-			- 0.128509 * this->getWealth() + 0.001108 * this->getLeverage()
-		    - 0.005691 * this->lag_wealth + 0.000325 * this->lag_deposits 
-		    - 0.001802 * this->lag_cash * + 0.005801 * this->lag_sumAssets;
+	double fitted = -0.009588 * this->getCash() + 0.035445 * this->sumAssets()
+			- 0.018639 * this->getCredit() - 0.205266 * this->getWealth() 
+			+ 0.019904 * this->getLeverage() - 0.094460 * this->lag_wealth 
+			+ 0.006865 * this->lag_deposits - 0.019053 * this->lag_sumAssets 
+			- 0.166881 * this->lag_leverage - 0.785173; 
 
 	double pred = 1.0;
 	if (fitted <= 100) { // prevent overflow
@@ -368,8 +370,9 @@ double Node::updateDefaultProb(){
 	// LESS SAFE
 	this->updateLags();
 
-	cout << this->deposits << this->getCash() << this->sumAssets() << this->getWealth() << this->getLeverage()
-		    << this->lag_wealth << this->lag_deposits << this->lag_cash << this->lag_sumAssets; // debug
+	cout << this->getCash() << this->sumAssets() << this->getCredit() 
+		<< this->getWealth() << this->getLeverage() << this->lag_wealth 
+		<< this->lag_deposits << this->lag_sumAssets << this->lag_leverage << endl; // debug
 	cout << this->nodeId << " Fitted=" << fitted << " DefaultPred=" << pred << endl; //debug
 
 	this->defaultProb = pred;
@@ -379,22 +382,22 @@ double Node::updateDefaultProb(){
 
 /**
  * update the lags if lags differ from current
- * I want to figure out a way to check whether the variables are updated 
+ * I have made sure at other places that this is called too often
  */
 bool Node::updateLags(){
 	cout << this->nodeId << " UpdateLags: " << "W=" << this->getWealth() << " D=" << this->deposits 
-		<< " C=" << this->getCash() << " A=" << this->sumAssets() << endl; // debug
+		<< " A=" << this->sumAssets() << " L=" << this->getLeverage() << endl; // debug
 
 	// check if they are updated
 	if (this->lag_wealth == this->getWealth() && this->lag_deposits == this->deposits
-		&& this->lag_cash == this->getCash() && this->lag_sumAssets == this->sumAssets()){
+		&& this->lag_sumAssets == this->sumAssets() && this->lag_leverage == this->getLeverage()){
 		cout << this->nodeId << " NOT updated" << endl;
 		return false; 
 	}else{
 		this->lag_wealth = this->getWealth();
 		this->lag_deposits = this->deposits;
-		this->lag_cash = this->getCash();
 		this->lag_sumAssets = this->sumAssets();
+		this->lag_leverage = this->getLeverage()
 		cout << this->nodeId << " YES updated" << endl;
 		return true;
 	}
