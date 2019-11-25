@@ -25,6 +25,8 @@ public:
 	double interest_rate;
     int degree;
     bool isAttached;
+    double default_rate;
+    double collateral_value;
 
 	Node* nodeFrom;
 	Node* nodeTo;
@@ -32,6 +34,57 @@ public:
 	// widget stuff
 	WidgetNode* fromWidget;
 	WidgetNode* toWidget;
+
+
+	double AtomicEdge::getSendValue(){
+		if (this->isDebt){
+			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
+		}
+		else{
+			return collateral_value + interest_rate;
+		}
+	}
+
+	double AtomicEdge::getReceiveValue(){
+		if (this->isDebt){
+			return collateral_value + interest_rate;
+		}
+		else{
+			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
+		}
+	}
+
+	void AtomicEdge::updateCollateralValue(){
+		if (not this->isDebt){
+			double max_extrapolate = this->nodeTo->getWealth(1.0) / this->CR();
+			double investment_level = this->nodeTo->credit_target + this->nodeTo->asset_target;
+			double max_payment = this->nodeTo->maxCredit(1.0) + this->nodeTo->getScrip();
+			double result;
+			double target = min(investment_level,max_payment);
+			result = this->nodeTo->assetReturn * (max_extrapolate - target)/max_extrapolate;
+			// if (max_extrapolate < investment_level and investment_level < max_payment){
+				
+			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
+			// 	//negative send
+			// }
+			// if (max_extrapolate > investment_level and investment_level > max_payment){
+			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
+			// 	//positive send
+			// }
+			// else {
+			// 	result = 0.0;
+			// }
+			this->collateral_value = result;
+		}
+		else{
+			this->collateral_value = this->CR() * this->nodeTo->wealth_return;			
+		}
+		// debt, positive receiving
+		
+
+	double AtomicEdge::CR(){
+		return this->originEdge->singleCreditEdges[singleCreditIndex]->collateralRate;
+	}
 
 	AtomicEdge(const AtomicEdge& a, Edge* e, 
 			int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT){
@@ -74,6 +127,10 @@ public:
 		this->isAttached = true;		
 	}
 
+	void unattach(){
+		this->isAttached = false;
+	}
+
 	void route(double current, double interest_rate, Graph* g, int transSeqNum){
 		if (current == 0.0){
 			return;
@@ -108,6 +165,7 @@ public:
 	double credit_interest_rate;
 	double collateralRate;
 	int maturity;
+	bool active;
 
 	AtomicEdge* credit_remain;
 	unordered_map<double, AtomicEdge*> debt_current;
@@ -118,6 +176,7 @@ public:
 		this->credit_max = s.credit_max;
 		this->credit_interest_rate = s.credit_interest_rate;
 		this->collateralRate = s.collateralRate;
+		this->active = s.active;
 		// this->maturity = s.maturity;
 		this->credit_remain = new AtomicEdge(*(s.credit_remain), e, single, atomicMap, nodeFromT, nodeToT);
 		for (auto it : s.debt_current){
@@ -128,8 +187,8 @@ public:
 	}
 
 	SingleCreditEdge(double c_max, double ir, int& globalId, Edge* e, 
-		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT,double cr)
-		: credit_max(c_max), credit_interest_rate(ir),collateralRate(cr){
+		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT,double cr,bool active)
+		: credit_max(c_max), credit_interest_rate(ir),collateralRate(cr),active(active){
 // update atomic edge initiator to include maturity, even for credit edges. may not need maturity for singlecreditedges
 			credit_remain = new AtomicEdge(false, 
 				globalId++, c_max, ir, e, single, atomicMap, nodeFromT, nodeToT);
@@ -144,6 +203,13 @@ public:
 	// } 
 
 
+	void deactivate(){
+		this->active = false;
+	}
+
+	void activate(){
+		this->active = true;
+	}	
 
 	void zero(){
 		credit_max = 0;
@@ -157,19 +223,32 @@ public:
 		// }
 		credit_max = amt;
 		credit_remain->capacity = max((amt - totalDebt),0.0);
+		
 		// cout<<"credit set to "<<amt - totalDebt<<endl;
 
 	}
 
+	double getUtil(){
+		double offered = credit_max;
+		double used = 0.0;
+		for (auto &d : debt_current){
+			used += d.second->capacity;
+		}
+		return max(0.0,used / (offered + 0.00000001));
+	}
+
 	bool routeCredit(double current, double interest_rate, int& globalId, Edge* e, 
 		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT){
-
+		if (not this->active){
+			cout<<"tried to route on inactive credit line"<<endl;
+			return false;
+		}
 		// cout<<"route credit: "<<current<<"at IR "<<interest_rate<<endl;
 		if (round(credit_remain->capacity*precision)/precision < round(precision*current)/precision){
-			// cout<<"invalid credit capacity"<<endl;
-			// cout<<"capacity is "<< credit_remain->capacity << " amount is "<< current<<endl;
+			cout<<"invalid credit capacity"<<endl;
+			cout<<"capacity is "<< credit_remain->capacity << " amount is "<< current<<endl;
 
-			// return false;
+			return false;
 		}
 
 		if (debt_current.find(interest_rate) != debt_current.end()){
@@ -195,13 +274,15 @@ public:
 			return false;
 		}
 		if (round(precision*debt_current.find(interest_rate)->second->capacity)/precision < round(precision*current)/precision){
-			// cout<<"invalid debt capacity"<<endl;
-			// cout<<"capacity is "<< debt_current.find(interest_rate)->second->capacity << " amount is "<< current<<endl;
-			// return false;
+			cout<<"invalid debt capacity"<<endl;
+			cout<<"capacity is "<< debt_current.find(interest_rate)->second->capacity << " amount is "<< current<<endl;
+			return false;
 		}
 
 		debt_current.find(interest_rate)->second->capacity -= current;
-		credit_remain->capacity = min(current + credit_remain->capacity,credit_max);
+		if (this->active){			
+			credit_remain->capacity = min(current + credit_remain->capacity,credit_max);
+		}
 		return true;
 	}
 

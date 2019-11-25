@@ -15,7 +15,9 @@ public:
 		int varId;
 		int atomicEdgeId;
 		double interest_rate;
-		Variable(int v, int a, double ir) : varId(v), atomicEdgeId(a), interest_rate(ir) {}
+		double collateral_cost;
+		double default_cost;
+		Variable(int v, int a, double val_in, double val_out, double IR) : varId(v), atomicEdgeId(a), value_receiving(val_in), value_paying(val_out), interest_rate(IR) {}
 	};
 
 	vector<Variable> variables;
@@ -36,6 +38,12 @@ public:
 	void printResult();
 
 	double copyBack();
+
+	double getRouted();
+
+	double getIRCost();
+
+	double getDebtCost();
 };
 
 

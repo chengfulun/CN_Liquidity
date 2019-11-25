@@ -99,7 +99,7 @@ Graph::Graph(int nodeNumT, int marketId){
 // }
 
 // Graph::~Graph(){
-// 	for (auto& it : nodes){
+// 	for (& it : nodes){
 // 		delete it.second;
 // 	}
 // }

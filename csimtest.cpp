@@ -203,6 +203,8 @@ int main(int argc, char* argv[]){
  	double cr = stod(config.CR);
  	double EAR = stod(config.EAR);
  	double asset_vol = sqrt(stod(config.asset_vol));
+	double log_mu = log(EAR*EAR/sqrt(EAR*EAR + asset_vol));
+	double log_vol = sqrt(log(1+asset_vol/(EAR*EAR))); 	
  	double deposit_rate = stod(config.dRate);
  	double haircut = stod(config.haircut);
  	double initR = stod(config.initR);
@@ -215,70 +217,72 @@ int main(int argc, char* argv[]){
  	// * precision;
  	// cout<<"capacity is "<<capacity<<endl;
  	// cout<<"transaction amount is "<<transAmount<<endl;
-			for (int i = 0; i < num_obs; ++i){
+	for (int i = 0; i < num_obs; ++i){
 				// cout<<"ob started"<<endl;
-				for (int j = 0; j < iter; ++j){
-					int failRateTotal = 0;
-					int rDefaults = 0;
-					int cDefaults = 0;
-					int marketId = finNum - 1;
-					CreditNet creditNet(finNum,precision, marketId, initR, initV, deposit_rate, haircut, maturity, outV);
-					// cout<<"initialized crednet"<<endl;
-					creditNet.genMarket0Graph(deposit, shock, wealth, FFR, marketId, cr, EAR, asset_vol, randThetas);
-					// creditNet.genTest0Graph(threshold, numIR, capacity,maxCR,wealth,marketId);
-								// cout<<"generated graph"<<endl;
-					// creditNet.print();
+		for (int j = 0; j < iter; ++j){
+			int failRateTotal = 0;
+			int rDefaults = 0;
+			int cDefaults = 0;
+			int marketId = finNum - 1;
+			CreditNet creditNet(finNum,precision, marketId, initR, initV, deposit_rate, haircut, maturity, outV);
+			// cout<<"initialized crednet"<<endl;
+			creditNet.genMarket0Graph(deposit, shock, wealth, FFR, marketId, cr, log_mu, log_vol, randThetas);
+			// creditNet.genTest0Graph(threshold, numIR, capacity,maxCR,wealth,marketId);
+						// cout<<"generated graph"<<endl;
+			// creditNet.print();
 
-					creditNet.setThetas(config.assignedStrategy);
-					for (int i_e = 0; i_e < epochs; ++i_e){
-						bool vv = true;
-						// if((i_e+1)%10==0 && i_e>0 && outResults){
-						// 	vv = true;
-						// }						
-						// double price = g();
-						// cout<<"start"<<endl;
-						if(outV){
-							cout<<"Epoch----------------"<<i_e<<endl;
-						}
-						cDefaults += creditNet.makeInvest(false,vv);
-						// creditNet.print();
-						double rr = (credNetConstants.normalDistribution(
-											credNetConstants.globalGenerator)*asset_vol*sqrt((double)(maturity - 1)));
-						double alpha =  exp((EAR - asset_vol*asset_vol/2.0)*(double)(maturity - 1)+rr);
-						if(outV){cout<<"shock done "<<alpha<<endl;}
-						// cout << window_size - failRateTotal << "   "<<endl;
-						rDefaults += creditNet.shockPay(alpha, false);
-							// cout<<"paid IR"<<endl;
-							// cout<<"node "<< l << " processed"<<endl;
-							// cDefaults += creditNet.checkCollateral(l);
-							// cout<<"paid cr"<<endl;
-						// creditNet.print();
-						// cout<<"epoch "<<i_e<<" done"<<endl;
-							 // cout  << payoffs[k] << "   ";
+			creditNet.setThetas(config.assignedStrategy);
+			for (int i_e = 0; i_e < epochs; ++i_e){
+				bool vv = true;
+				// if((i_e+1)%10==0 && i_e>0 && outResults){
+				// 	vv = true;
+				// }						
+				// double price = g();
+				// cout<<"start"<<endl;
+				if(outV){
+					cout<<"Epoch----------------"<<i_e<<endl;
+				}
+				cDefaults += creditNet.makeInvest(false,vv);
+				// creditNet.print();
 
-						// creditNet.nodes[finNum-1]->print();
-						// cout << numIR << "  "<< deposit  <<"  "<<rDefaults  <<endl;
-						// cout << "failed trx: " << failRateTotal << endl;
-						// cout << "rDefaults: " << rDefaults << endl;
-						// cout << "cDefaults: " << cDefaults << endl;
-						// d += creditNet.checkCR(price);
-						// defaults += d;
-					
-						// cout<<"payoffs written"<<endl;
-						// creditNet.print();
-												
-					
+				double rr = (credNetConstants.normalDistribution(
+									credNetConstants.globalGenerator)*log_vol*sqrt((double)(maturity - 1))) + log_mu;
+				double alpha =  exp(rr);
+					// - asset_vol*asset_vol/2.0)*(double)(maturity - 1)+rr);
+				if(outV){cout<<"shock done "<<alpha<<endl;}
+				// cout << window_size - failRateTotal << "   "<<endl;
+				rDefaults += creditNet.shockPay(alpha, false);
+					// cout<<"paid IR"<<endl;
+					// cout<<"node "<< l << " processed"<<endl;
+					// cDefaults += creditNet.checkCollateral(l);
+					// cout<<"paid cr"<<endl;
+				// creditNet.print();
+				// cout<<"epoch "<<i_e<<" done"<<endl;
+					 // cout  << payoffs[k] << "   ";
 
-				// cout<<"exit loop"<<endl;
-					
-				
+				// creditNet.nodes[finNum-1]->print();
+				// cout << numIR << "  "<< deposit  <<"  "<<rDefaults  <<endl;
+				// cout << "failed trx: " << failRateTotal << endl;
+				// cout << "rDefaults: " << rDefaults << endl;
+				// cout << "cDefaults: " << cDefaults << endl;
+				// d += creditNet.checkCR(price);
+				// defaults += d;
+			
+				// cout<<"payoffs written"<<endl;
+				// creditNet.print();
+										
+			
+
+		// cout<<"exit loop"<<endl;
+			
+		
 			}
-				for (int k = 0; k < finNum - 2; k++){
-							// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
-							payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0);
-								// *precision
-							// cout << endl;
-						}
+			for (int k = 0; k < finNum - 2; k++){
+						// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
+						payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0);
+							// *precision
+						// cout << endl;
+			}
 
 				// for (int k = 0; k < finNum - 1; ++k){
 				// 			// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
@@ -289,17 +293,17 @@ int main(int argc, char* argv[]){
 		}
 	// cout<<"exit loop 2"<<endl;
 						// cout<<"payouts ready"<<endl;
-						std::vector<PlayerInfo> myList;
-						for (int g = 0; g < finNum - 2; ++g) {
-							PlayerInfo p;
-							p.strategy = config.assignedStrategy[g];
-							p.payoff = (double)payoffs[g]/(double)iter;
-							p.role = "All";
-							myList.push_back(p);
-							}
-						// cout<<"payoffs ready"<<endl;
+		std::vector<PlayerInfo> myList;
+		for (int g = 0; g < finNum - 2; ++g) {
+			PlayerInfo p;
+			p.strategy = config.assignedStrategy[g];
+			p.payoff = (double)payoffs[g]/(double)iter;
+			p.role = "All";
+			myList.push_back(p);
+			}
+		// cout<<"payoffs ready"<<endl;
 
-						writePayoff(myList, json_folder + "/observation" + std::to_string(i) + ".json");		
+		writePayoff(myList, json_folder + "/observation" + std::to_string(i) + ".json");		
 	}
 
 	return 0;	

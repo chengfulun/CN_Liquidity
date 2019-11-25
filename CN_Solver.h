@@ -10,10 +10,10 @@
 
 class LpSolver{
 public:
-	bool solveLpProblem(CplexConverter& cplexConverter, string mode, string purpose, double cRate, double dRate, double haircut);
+	bool solveLpProblem(CplexConverter& cplexConverter, string mode, string purpose, double cRate, double dRate, double haircut, double price);
 	
 	void populatebyrow(CplexConverter& cplexConverter, 
-		IloModel model, IloNumVarArray x, IloRangeArray c, string mode, string purpose, double cRate, double dRate, double haircut);
+		IloModel model, IloNumVarArray x, IloRangeArray c, string mode, string purpose, double cRate, double dRate, double haircut, double price);
 
 	void addObjective(string mode, CplexConverter& cplexConverter, IloModel model, 
 	IloNumVarArray x, IloRangeArray c);

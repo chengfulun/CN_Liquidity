@@ -1418,3 +1418,12 @@ test_route:
 	time ./test_route json 1
 	# time ./test 1 4 1 MIN_SRC_COST
 	# time ./test 1 7 1 MIN_CREDIT_COST> out1
+
+testFunc:
+	g++ -g -c CN_Constants.cpp -std=c++11
+	g++ -o testfunc testfunction.cpp *.o -std=c++11
+	# ./testCollateral json'
+	# ./simCollateraltest json 1 2 > 1IR
+	# ./simCollateraltest json 1 1 > 0IR
+	# ./simCollateraltest json 1 3 > 2IR
+	./testfunc

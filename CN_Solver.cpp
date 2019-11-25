@@ -122,6 +122,28 @@ void LpSolver::addObjective(string mode,
 			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
 				// var Id
 				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
+				cost += 1000 -x[vId];
+				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
+				// 		<< " * " << vId << endl;
+			}
+		}
+		model.add(IloMinimize(env, cost));
+
+	}	else if (mode == "MAX_FLOW_HIGHIR"){
+
+		IloExpr cost(env);
+
+		// add cost to all atomic edges
+		for (int i = 0; i < cplexConverter.variables.size(); ++i){
+			cost += x[i] * 0.000000001;
+			// cplexConverter.variables[i].interest_rate;
+		}
+
+		for(auto &atoIn : cplexConverter.src->atomicEdge_in){
+			int aeId = atoIn.second->atomicEdgeId;
+			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
+				// var Id
+				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
 				cost += 1000 -x[vId]*(1-cplexConverter.variables[vId].interest_rate);
 				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
 				// 		<< " * " << vId << endl;
@@ -242,7 +264,7 @@ void LpSolver::addObjective(string mode,
 }
 	
 void LpSolver::populatebyrow (CplexConverter& cplexConverter, 
-	IloModel model, IloNumVarArray x, IloRangeArray c, string mode, string purpose, double cRate, double dRate, double haircut)
+	IloModel model, IloNumVarArray x, IloRangeArray c, string mode, string purpose, double cRate, double dRate, double haircut, double price)
 {
 	IloEnv env = model.getEnv();
 	// CAPITAL LETTERS MEAN I NEED YOUR HELP, here is help 
@@ -257,19 +279,20 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 		x.add(iloVar);
 	}
 
-	//Capacity Constraints
-	for (auto &it : cplexConverter.atomicIdToVarIdDict){
-		IloExpr t(env);
-		// cout << "adding constraint ";
-		for (int j = 0; j < it.second.size(); j++){
-			// cout << "x[" << it.second[j] << "] + ";
-			t += x[it.second[j]];
-		}
-		// cout << endl;
-		c.add(t <= cplexConverter.graph->atomicEdges[it.first]->capacity);
-		// cout << c << endl;
-		t.end();
-	}
+	// // Capacity Constraints
+	// for (auto &it : cplexConverter.atomicIdToVarIdDict){
+	// 	IloExpr t(env);
+	// 	// cout << "adding constraint ";
+	// 	// loop below for credit edges that have multiple variables
+	// 	for (int j = 0; j < it.second.size(); j++){
+	// 		// cout << "x[" << it.second[j] << "] + ";
+	// 		t += x[it.second[j]];
+	// 	}
+	// 	// cout << endl;
+	// 	c.add(t <= cplexConverter.graph->atomicEdges[it.first]->capacity);
+	// 	// cout << c << endl;
+	// 	t.end();
+	// }
 
 	// other constraints
 	for (auto nodePair : cplexConverter.graph->nodes){
@@ -299,6 +322,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 					}
 
 					if(purpose == "DEBT"){
+						// input cRate at the time of calling payAsset()
 						collateral_req -= x[vId] * cRate;
 					}
 
@@ -314,9 +338,11 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			}
 
 			if (not n->isMarket){
+				// set dRate in payAsset
 				collateral_req += n->getCollateral(dRate);
-				collateral += n->getWealth(haircut);
+				collateral += n->getWealth(price);
 			}
+			// make sure no flow goes into source
 			for (auto &atoOut : n->atomicEdge_out){
 				int aeId = atoOut.second->atomicEdgeId;
 
@@ -328,14 +354,14 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 					// cost -= cplexConverter.graph->atomicEdges[cplexConverter.variables[vId].atomicEdgeId]->interest_rate * x[vId];
 				}
 			}
-			if (mode == "MAX_FLOW"){
+			if (mode == "MAX_FLOW" || mode == "MAX_FLOW_HIGHIR" || purpose == "ASSET"){
 				c.add(outFlow <= cplexConverter.request);
 			}
 			else{
 				c.add(outFlow == cplexConverter.request);				
 			}
 
-			if(not n->leveraged && not n->defaulted && n->getWealth(haircut) > n->getCollateral(dRate)){
+			if(not n->leveraged && not n->defaulted && n->getWealth(price) > n->getCollateral(dRate)){
 				c.add(collateral  - collateral_req >= 0);
 			}
 			// inFlow.end();
@@ -348,6 +374,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			// destination constraints
 			IloExpr inFlow(env);
 			// IloExpr outFlow(env);
+			// make sure dest doesn't pay anything
 			for(auto &atoIn : n->atomicEdge_in){
 				int aeId = atoIn.second->atomicEdgeId;
 				for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
@@ -365,7 +392,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 					inFlow += x[vId];
 				}
 			}
-			if (mode == "MAX_FLOW"){
+			if (mode == "MAX_FLOW" || mode == "MAX_FLOW_HIGHIR" || purpose == "ASSET"){
 				c.add(inFlow <= cplexConverter.request);
 			}
 			else{
@@ -377,7 +404,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 		} else {
 
 			// Monotonicity Constraints
-			for (int i = 0; i < credNetConstants.totalIrs.size(); ++i){
+			for (int i = 0; i < credNetConstants.totalValues.size(); ++i){
 				IloExpr tempin(env);
 				IloExpr tempout(env);
 
@@ -387,10 +414,10 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 
 						// var Id
 						int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
-						if(i==0 && cplexConverter.variables[vId].interest_rate==credNetConstants.totalIrs[0]){
-							tempout += x[vId];
-						}							
-						else if (cplexConverter.variables[vId].interest_rate < credNetConstants.totalIrs[i]){
+						// if(i==0 && cplexConverter.variables[vId].value_paying==credNetConstants.totalValues[0]){
+						// 	tempout += x[vId];
+						// }							
+						if (cplexConverter.variables[vId].value_paying <= credNetConstants.totalValues[i]){
 							tempout += x[vId];
 						}
 					}
@@ -404,7 +431,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 						// if(i==0 && cplexConverter.variables[vId].interest_rate == credNetConstants.totalIrs[0]){
 						// 	tempin += x[vId];							
 						// }
-						if (cplexConverter.variables[vId].interest_rate <= credNetConstants.totalIrs[i]){
+						if (cplexConverter.variables[vId].value_receiving <= credNetConstants.totalValues[i]){
 							tempin += x[vId];
 						}
 					}
@@ -427,7 +454,8 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			for(auto &atoIn : n->atomicEdge_in){
 				int aeId = atoIn.second->atomicEdgeId;
 				int ceId = atoIn.second->singleCreditIndex;
-				double cr = atoIn.second->originEdge->singleCreditEdges[ceId]->collateralRate;
+				double cr = atoIn.second->CR();
+				// originEdge->singleCreditEdges[ceId]->collateralRate;
 				for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
 					// var Id
 					int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
@@ -447,7 +475,8 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			for (auto &atoOut : n->atomicEdge_out){
 				int aeId = atoOut.second->atomicEdgeId;
 				int ceId = atoOut.second->singleCreditIndex;
-				double cr = atoOut.second->originEdge->singleCreditEdges[ceId]->collateralRate;				
+				double cr = atoOut.second->CR();
+				// originEdge->singleCreditEdges[ceId]->collateralRate;				
 				for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
 					// var Id
 					int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
@@ -466,14 +495,14 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			// 	paySum += toPay.second.second;
 			// }
 			if (not n->isMarket){
-				collateral += n->getWealth(haircut);
+				collateral += n->getWealth(price);
 				// collateral -= paySum;			
 			}
 			// collateral += n->assets;
 
 			c.add(inFlow - outFlow == 0);
 			// && not n->defaulted && n->getWealth() > n -> getCollateral()			
-			if(not n->leveraged && not n->defaulted && n->getWealth(haircut) > n -> getCollateral(dRate)){
+			if(not n->leveraged && not n->defaulted && n->getWealth(price) > n -> getCollateral(dRate)){
 				c.add(collateral - collateral_req >= 0);
 			}
 			inFlow.end();

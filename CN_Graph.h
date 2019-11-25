@@ -24,6 +24,14 @@ public:
 	list<Edge*> edges;
 	unordered_map<int, AtomicEdge*> atomicEdges;
 
+	vector<double> collateral_values;
+	vector<double> interest_values;
+	vector<double> default_values;
+
+	unordered_map<string, int> binNum;
+	unordered_map<double,double> collateral_valueToMean;
+	unordered_map<double,double> interest_valueToMean;
+	unordered_map<double,double> default_valueToMean;
 	/////////////////////////////////////////////////////////////////////////
 	/* Graph basics */
 	/////////////////////////////////////////////////////////////////////////
