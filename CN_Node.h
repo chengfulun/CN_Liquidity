@@ -49,7 +49,7 @@ public:
 	void updateDegree();
 
 	// void remove();
-	void makeLeveraged(bool status);
+	void makeLeveraged(bool status, double haircut);
 	void makeDefault();
 	void printTransSeq();
 	void addModification(int transSeqNum);
@@ -58,7 +58,7 @@ public:
 	double getDebt();
 	void makeMarket();
 	double getScrip();
-	double getWealth(double price);
+	double getWealth(double haircut);
 	bool isMarket;
 	// void payIR();
 
@@ -70,6 +70,9 @@ public:
 	double deposits;
 	double lambda;
 	double w_assets;
+	double mReserved;
+	double reserveT;
+
 	double assetSum();
 	// maturity, amount
 	vector<pair<int, double>> assets;

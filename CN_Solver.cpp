@@ -99,13 +99,47 @@ void LpSolver::addObjective(string mode,
 			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
 				// var Id
 				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
-				cost += cplexConverter.variables[vId].interest_rate * x[vId];
+				cost += cplexConverter.variables[vId].sending_val * x[vId];
 
 				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
 				// 		<< " * " << vId << endl;
 			}
 		}
 		model.add(IloMinimize(env, cost));
+	}
+	else if (mode == "MAX_FLOW_SRC"){
+
+		IloExpr cost(env);
+
+		// add cost to all atomic edges
+		for (int i = 0; i < cplexConverter.variables.size(); ++i){
+			cost += x[i] * 0.000000001;
+			// cplexConverter.variables[i].interest_rate;
+		}
+
+		for(auto &atoIn : cplexConverter.src->atomicEdge_in){
+			int aeId = atoIn.second->atomicEdgeId;
+			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
+				// var Id
+				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
+				cost += 1000 -x[vId];
+				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
+				// 		<< " * " << vId << endl;
+			}
+		}
+		for(auto &atoIn : cplexConverter.src->atomicEdge_in){
+			int aeId = atoIn.second->atomicEdgeId;
+			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
+				// var Id
+				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
+				cost += cplexConverter.variables[vId].sending_val * x[vId];
+
+				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
+				// 		<< " * " << vId << endl;
+			}
+		}		
+		model.add(IloMinimize(env, cost));
+
 	}
 	else if (mode == "MAX_FLOW"){
 
@@ -330,7 +364,8 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 						collateral -= x[vId];
 					}
 					if(purpose == "ASSET"){
-						collateral -= x[vId] * (1-haircut);
+						// collateral -= x[vId] * (1-haircut);
+						collateral -= x[vId] * haircut;
 					}
 
 					// cost += cplexConverter.graph->atomicEdges[cplexConverter.variables[vId].atomicEdgeId]->interest_rate * x[vId];
@@ -340,7 +375,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			if (not n->isMarket){
 				// set dRate in payAsset
 				collateral_req += n->getCollateral(dRate);
-				collateral += n->getWealth(price);
+				collateral += n->getWealth(haircut);
 			}
 			// make sure no flow goes into source
 			for (auto &atoOut : n->atomicEdge_out){
@@ -361,7 +396,7 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 				c.add(outFlow == cplexConverter.request);				
 			}
 
-			if(not n->leveraged && not n->defaulted && n->getWealth(price) > n->getCollateral(dRate)){
+			if(not n->leveraged && not n->defaulted && n->getWealth(haircut) > n->getCollateral(dRate)){
 				c.add(collateral  - collateral_req >= 0);
 			}
 			// inFlow.end();
@@ -495,14 +530,14 @@ void LpSolver::populatebyrow (CplexConverter& cplexConverter,
 			// 	paySum += toPay.second.second;
 			// }
 			if (not n->isMarket){
-				collateral += n->getWealth(price);
+				collateral += n->getWealth(haircut);
 				// collateral -= paySum;			
 			}
 			// collateral += n->assets;
 
 			c.add(inFlow - outFlow == 0);
 			// && not n->defaulted && n->getWealth() > n -> getCollateral()			
-			if(not n->leveraged && not n->defaulted && n->getWealth(price) > n -> getCollateral(dRate)){
+			if(not n->leveraged && not n->defaulted && n->getWealth(haircut) > n -> getCollateral(dRate)){
 				c.add(collateral - collateral_req >= 0);
 			}
 			inFlow.end();

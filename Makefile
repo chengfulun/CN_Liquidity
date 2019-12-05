@@ -1359,6 +1359,28 @@ simCtest:
 	# ./testCollateral json 5 5 10 > out
 	# ./testCollateral json 5 5 10 > out
 
+simCtestP:
+	g++ -g -c CN_Constants.cpp -std=c++11
+	g++ -g -c CN_Node.cpp -std=c++11
+	g++ -g -c CN_Edge.cpp -std=c++11
+	g++ -g -c CN_Graph.cpp -std=c++11
+	g++ -g -c CN_WidgetGraph.cpp -std=c++11
+	g++ -g -c CN_CplexConverter.cpp -std=c++11
+	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_Solver.cpp -std=c++11
+	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) creditNetTest.cpp -std=c++11
+	$(CCC) -g $(CCFLAGS) $(CPPFLAGS) $(CCLNDIRS) -o simCollateraltestP csimtest_payments.cpp *.o $(CCLNFLAGS) -std=c++11
+	# ./testCollateral json'
+	# ./simCollateraltest json 1 2 > 1IR
+	# ./simCollateraltest json 1 1 > 0IR
+	# ./simCollateraltest json 1 3 > 2IR
+	./simCollateraltestP json 1 1 > adjTest0
+	./simCollateraltestP json 1 3 > adjTest2
+	./simCollateraltestP json 1 2 > adjTest1
+
+
+
+
+
 simReturns:
 	g++ -g -c CN_Constants.cpp -std=c++11
 	g++ -g -c CN_Node.cpp -std=c++11

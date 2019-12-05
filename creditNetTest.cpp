@@ -15,6 +15,20 @@ using namespace dlib;
 
 extern CredNetConstants credNetConstants;
 
+void testPay(){
+	this->asset_coc_all = 0;
+	this->creturn_all = 0.01;
+	this->debt_coc_all = 0;
+	this->updateCollateralValues();
+	for (int ix = 0; ix < nodeNum - 1; ix++){
+		double fail;
+		double debt_cost;
+		double asset_cost;
+		std::tie(fail,debt_cost,asset_cost) = payAsset(ix, this->marketId, 10, "MAX_FLOW", transactionCounter++, "ASSET",0.0,deposit_rate,haircut);		
+	}
+}
+
+
 double phi(double x)
 {
     // constants
@@ -358,11 +372,9 @@ void CreditNet::updateCreditPremiums(){
 	}
 }
 
-// which nodes are in active set? can call while recording debt utilization
 void CreditNet::updateCreditSets(){
 	for (auto &e : this->atomicEdges){
 		double UR = e->singleCreditEdges[0]->getUtil();
-		// need node active status, not edge status
 		int status = e->singleCreditEdges[0]->active;
 		if (status){
 			if (UR < 0.25 and status > 2){
@@ -372,7 +384,6 @@ void CreditNet::updateCreditSets(){
 	}
 }
 
-// cycle through requested lines and update capacities
 void CreditNet::updateCreditLimits(){
 	for (auto &e : this->atomicEdges){
 		double UR = e->singleCreditEdges[0]->getUtil();
@@ -381,7 +392,6 @@ void CreditNet::updateCreditLimits(){
 	}
 }
 
-// what is this?
 void CreditNet::updateLines(){
 
 }
@@ -390,11 +400,10 @@ void CreditNet::updateLines(){
 int CreditNet::makeInvest(bool forced, bool verbose){
 
 	int leverages = 0;
-	vector<int> randix  = rix(	nodeNum );
 
 	for (int kk = 0; kk< nodeNum; kk++){
 		int k = randix[kk];
-		wealths[k] = this->nodes[k]->getWealth(haircut);
+		wealths[k] = this->nodes[k]->getWealth(1.0);
 		double violate_lev = checkCollateral(k);
 		leverages += violate_lev;
 		cDefaults[k] += violate_lev;
@@ -403,30 +412,26 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 		// 	cout<<j<<" already defaulted"<<endl;
 		// 	continue;
 		// }
-
-// forced defaults
-		// if(forced && not this->nodes[k]->defaulted && this->fDefault > 0){
-		// 	this->nodes[k]->makeDefault();
-		// 	if(this->verb){
-		// 		cout<<"made "<<k<<" default "<<endl;				
-		// 	}
-		// 	this->fDefault -= 1;
-		// 	fDefaults[k] += 1;
-		// }
-
-
+		if(forced && not this->nodes[k]->defaulted && this->fDefault > 0){
+			this->nodes[k]->makeDefault();
+			if(this->verb){
+				cout<<"made "<<k<<" default "<<endl;				
+			}
+			this->fDefault -= 1;
+			fDefaults[k] += 1;
+		}
 		if (k != marketId && not this->nodes[k]->defaulted){
 			// cout<<j <<" not defaulted "<<this->nodes[j]->defaulted<<endl;
 			// double w = wealths[j];
 		
 			//update debt payouts
-			this->deactivateReserves(k);
+
 			double asset_target = this->nodes[k]->folio_volume*this->nodes[k]->w_assets;
 			// if(overleveraged == 0){
 			double fail;
 			double debt_cost;
 			double asset_cost;
-			std::tie(fail,debt_cost,asset_cost) = payAsset(k, this->marketId, asset_target, "MAX_FLOW", transactionCounter++, "ASSET",deposit_rate,haircut);
+			std::tie(fail,debt_cost,asset_cost) = payAsset(k, this->marketId, asset_target, "MAX_FLOW", transactionCounter++, "ASSET",0.0,deposit_rate,haircut);
 			if(verb){
 				cout<<"paid assets "<<fail<<endl;
 			}
@@ -1101,7 +1106,7 @@ double CreditNet::makeLiquidate(int fid, double amt){
 	return 0;
 }
 
-std::tuple<double,double,double> CreditNet::payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double drate, double haircut){
+std::tuple<double,double,double> CreditNet::payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double crate, double drate, double haircut){
 	this->updateNodeDegrees();
 	if (mode == "SRC_DECIDE"){
 		mode = this->nodes[fid1]->routePreference;
@@ -1401,7 +1406,7 @@ int CreditNet::checkCollateral(int fid1){
 	// cout<<"wealth: "<<w<<endl;
 	// cout<<"collateral short: "<<buff<<endl;
 	if (buff >= 0){
-		this->nodes[fid1]->makeLeveraged(false, this->haircut);		
+		this->nodes[fid1]->makeLeveraged(false);		
 		return 0;
 	}
 	// double target = buff/(-CR);

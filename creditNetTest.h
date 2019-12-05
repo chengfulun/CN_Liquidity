@@ -98,7 +98,7 @@ public:
 	double makeLiquidate(int fid, double amt);
 	vector<double> credit_shares(int ix);
 
-	std::tuple<double,double,double> payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double drate, double haircut);
+	std::tuple<double,double,double> payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double crate, double drate, double haircut);
 	// (check,asset_coc,debt_coc)
 	void updateValueBins();
 	double deposit_rate;
