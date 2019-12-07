@@ -26,7 +26,7 @@ Node::Node(int id){
 	// this->defaulted = false;
 	this->leveraged = false;
 	this->isMarket = false;
-	this->creditReturn = 0;
+	// this->creditReturn = 0;
 	this->creditVol = 0;
 	this->folio_volume = 0.0;
 }
@@ -48,30 +48,30 @@ Node::Node(int id){
 // }
 
 
-double Node::assetDemand(double price, double fundamental, double curr_price){
-	double target = this->getWealth(curr_price) * (asset_aggression * )
-	return this->asset_aggression * (price - fundamental) * this->getWealth(curr_price)
-	- 
-}
+// double Node::assetDemand(double price, double fundamental, double curr_price){
+// 	double target = this->getWealth(curr_price) * (asset_aggression * )
+// 	return this->asset_aggression * (price - fundamental) * this->getWealth(curr_price)
+// 	- 
+// }
 
-double Node::collateralValue(double CR, double price, bool useCredit){
-	if (useCredit){
-		double max_extrapolate = this->->getWealth(price) / CR;
-		double investment_level = this->credit_target + this->asset_target;
-		double max_payment = this->maxCredit(price) + this->getScrip();
-		double result = 0;
-		// change assetReturn to total investment return
-		if (max_extrapolate < investment_level and investment_level < max_payment){
-			result = this->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
-		}
-		if (max_extrapolate > investment_level and investment_level > max_payment){
-			result = this->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
-		}
-		return result;
-	}
+// double Node::collateralValue(double CR, double price, bool useCredit){
+// 	if (useCredit){
+// 		double max_extrapolate = this->->getWealth(price) / CR;
+// 		double investment_level = this->credit_target + this->asset_target;
+// 		double max_payment = this->maxCredit(haircut) + this->getScrip();
+// 		double result = 0;
+// 		// change assetReturn to total investment return
+// 		if (max_extrapolate < investment_level and investment_level < max_payment){
+// 			result = this->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
+// 		}
+// 		if (max_extrapolate > investment_level and investment_level > max_payment){
+// 			result = this->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
+// 		}
+// 		return result;
+// 	}
 
-	return CR * this->wealth_return;	
-}
+// 	return CR * this->wealth_return;	
+// }
 
 void Node::makeMarket(){
 	this->isMarket = true;
@@ -115,10 +115,10 @@ double Node::maxCredit(double haircut){
 	return result;
 }
 
-double Node::targetCredit(){
-	double credit_needed = this->credit_target + this->asset_target 
-	- this->;
-}
+// double Node::targetCredit(){
+// 	double credit_needed = this->credit_target + this->asset_target 
+// 	- this->;
+// }
 
 
 void Node::makeLeveraged(bool status, double haircut){
@@ -212,17 +212,14 @@ void Node::printTransSeq(){
 	// }
 // }
 
-double Node::expected_credit_revenue(){
-	
-}
 
 double Node::getCollateral(double dRate){
 	double temp = 0;
 	double amt = 0;
 	for (auto &aOut : atomicEdge_out){
-		if (aOut->isDebt){
-			temp += aOut->CR() * aOut->capacity;
-			amt += aOut->capacity;
+		if (aOut.second->isDebt){
+			temp += aOut.second->CR() * aOut.second->capacity;
+			amt += aOut.second->capacity;
 		}
 	}
 
@@ -350,64 +347,51 @@ void Node::updateWealthReturn(){
 	this->wealth_return = result / sum_w;	
 }
 
-void Node::updateInvestmentReturn(){
-	double result = 0.0;
-	double sum_inv = 0.0;
-	for (int i=0;i<asset_returns.size();++i){
-		result += asset_returns[i] + credit_returns[i];
-		sum_inv += credit_investments[i] + asset_investments[i];
-	}
-	this->investment_return = result / sum_inv;
-}
+// void Node::updateInvestmentReturn(){
+// 	double result = 0.0;
+// 	double sum_inv = 0.0;
+// 	for (int i=0;i<asset_returns.size();++i){
+// 		result += asset_returns[i] + credit_returns[i];
+// 		sum_inv += credit_investments[i] + asset_investments[i];
+// 	}
+// 	this->investment_return = result / sum_inv;
+// }
 
-void Node::updateInterestPaid(){
-	double result = 0.0;
-	double sum_inv = 0.0;
-	for (int i=0;i<asset_leverage_interest.size();++i){
-		result += asset_leverage_interest[i];
-		sum_inv += asset_investments[i];
-	}
-	this->interest_paid = result / sum_inv;	
-}
+// void Node::updateInterestPaid(){
+// 	double result = 0.0;
+// 	double sum_inv = 0.0;
+// 	for (int i=0;i<asset_leverage_interest.size();++i){
+// 		result += asset_leverage_interest[i];
+// 		sum_inv += asset_investments[i];
+// 	}
+// 	this->interest_paid = result / sum_inv;	
+// }
 
-void Node::updateAllReturns(){
-	this->updateAssetReturn();
-	this->updateCreditReturn();
-	this->updateWealthReturn();
-	this->updateInvestmentReturn();
-	this->updateInterestPaid();
-}
+// void Node::updateAllReturns(){
+// 	this->updateAssetReturn();
+// 	this->updateCreditReturn();
+// 	this->updateWealthReturn();
+// 	this->updateInvestmentReturn();
+// 	this->updateInterestPaid();
+// }
 
-void Node::updateAllHist(double price, double assetR, double creditR,double creditI,double assetI, double IR, int length){
-	if (this->wealth_history.size() < length){
-		wealth_history.erase(wealth_history.begin());
-		asset_returns.erase(asset_returns.begin());
-		credit_returns.erase(credit_returns.begin());
-		asset_investments.erase(asset_investments.begin());
-		credit_investments.erase(credit_investments.begin());
-		asset_leverage_interest.erase(asset_leverage_interest.begin());
-	}
-	wealth_history.push_back(this->getWealth(price));
-	asset_returns.push_back(assetR);
-	credit_returns.push_back(creditR);
-	asset_investments.push_back(assetI);
-	credit_investments.push_back(creditI);
-	asset_leverage_interest.push_back(IR);
-}
+// void Node::updateAllHist(double price, double assetR, double creditR,double creditI,double assetI, double IR, int length){
+// 	if (this->wealth_history.size() < length){
+// 		wealth_history.erase(wealth_history.begin());
+// 		asset_returns.erase(asset_returns.begin());
+// 		credit_returns.erase(credit_returns.begin());
+// 		asset_investments.erase(asset_investments.begin());
+// 		credit_investments.erase(credit_investments.begin());
+// 		asset_leverage_interest.erase(asset_leverage_interest.begin());
+// 	}
+// 	wealth_history.push_back(this->getWealth(price));
+// 	asset_returns.push_back(assetR);
+// 	credit_returns.push_back(creditR);
+// 	asset_investments.push_back(assetI);
+// 	credit_investments.push_back(creditI);
+// 	asset_leverage_interest.push_back(IR);
+// }
 
-double Node::getScrip(){
-	if(defaulted){
-		return 0.0;
-	}
-	double temp = 0.0;
-	for (auto &dIn : atomicEdge_in){
-		if (dIn.second->isDebt){
-			temp += dIn.second->capacity;
-			// * (1.0 + dIn.second->interest_rate);
-		}
-	}
-	return temp;
-}
 
 double Node::creditReturn(double DR){
 	if(defaulted){
@@ -468,7 +452,7 @@ double Node::getDebt(){
 	return temp;
 }
 
-void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double mlimit){
+void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double mlimit, double haircut){
 	// double E_debt = this->credit_returns_in;
 	// double sigma_sq_debt = this->credit_vol_in;
 	// if(this->leveraged){
@@ -488,17 +472,18 @@ void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_d
 	}
 	this->lambda = max(0.0,(E*sigma_sq_debt + E_debt*sigma_sq)/(sigma_sq*sigma_sq_debt*theta));
 	this->w_assets = max(0.0,min(1.0-(0.2 + floor),E*sigma_sq_debt/(E*sigma_sq_debt + E_debt*sigma_sq)));
-	this->folio_volume = max(0.0,min(this->getWealth()*mlimit, this->getWealth()*this->lambda));
+	this->folio_volume = max(0.0,min(this->getWealth(haircut)*mlimit, this->getWealth(haircut)*this->lambda));
 	
 	this->asset_target = folio_volume * w_assets;
 	this->credit_target = folio_volume * (1.0 - w_assets);
 		// pow(pow((1+lambda*(E*w_assets+(1-w_assets)*E_debt)-(theta*lambda*lambda*(sigma_sq*w_assets+(1-w_assets)*sigma_sq_debt))),(1.0-theta))/FFR,1.0/theta));
 	}
 
-void Node::postCashUpdate(){
-	double max_payment = this->maxCredit(1.0) + this->getScrip() - this->mReserve;
+void Node::postCashUpdate(double haircut){
+	double max_payment = this->maxCredit(1.0) + this->getScrip();
+	// - this->mReserve;
 	this->folio_volume = min(this->folio_volume,max_payment);
-	this->lambda = this->folio_volume / this->getWealth();
+	this->lambda = this->folio_volume / this->getWealth(haircut);
 	this->asset_target = folio_volume * w_assets;
 	this->credit_target = folio_volume * (1.0 - w_assets);
 }
@@ -516,8 +501,9 @@ double Node::assetSum(){
 
 
 
-void Node::buyAssets(double amt, int mat){
-	this->assets.push_back(make_pair(mat, amt));
+void Node::buyAssets(double amt){
+	this->assets += amt;
+	// this->assets.push_back(make_pair(mat, amt));
 	// cout<<"bought "<<assets[assets.size()-1].second<<" assets"<<endl;
 }
 // void Node::payIR(){

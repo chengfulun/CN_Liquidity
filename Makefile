@@ -1367,7 +1367,7 @@ simCtestP:
 	g++ -g -c CN_WidgetGraph.cpp -std=c++11
 	g++ -g -c CN_CplexConverter.cpp -std=c++11
 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_Solver.cpp -std=c++11
-	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) creditNetTest.cpp -std=c++11
+	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_CreditNet.cpp -std=c++11
 	$(CCC) -g $(CCFLAGS) $(CPPFLAGS) $(CCLNDIRS) -o simCollateraltestP csimtest_payments.cpp *.o $(CCLNFLAGS) -std=c++11
 	# ./testCollateral json'
 	# ./simCollateraltest json 1 2 > 1IR

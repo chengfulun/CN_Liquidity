@@ -59,13 +59,15 @@ public:
 	void makeMarket();
 	double getScrip();
 	double getWealth(double haircut);
+	double credit2Return(double DR);
+	void postCashUpdate(double haircut);
 	bool isMarket;
 	// void payIR();
 
 	vector<double> credit_investments;
 	vector<double> credit_returns; // aggregate revenue
 
-	void getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double limit);
+	void getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double mlimit, double haircut);
 	double theta;
 	double deposits;
 	double lambda;
@@ -78,14 +80,14 @@ public:
 	vector<pair<int, double>> assets;
 	double sumAssets();
 	void print(); 
-	double creditReturn;
+	// double creditReturn;
 	double creditVol;
 	void invest();
 	double credit_returns_in;
 	double credit_vol_in;
 	unordered_map<int,double> creditPayIn;
 	unordered_map<int,pair<double,double>> creditPayOut;	
-	void buyAssets(double amt, int mat);
+	void buyAssets(double amt);
 	double getCredit();
 	double folio_volume; 
 	int been_defaulted = 0;
@@ -101,7 +103,7 @@ public:
 	double getInterestOwed();
 
 	// collateral value
-	double maxCredit();
+	double maxCredit(double haircut);
 
 	void updateWealthReturn();
 	void updateAssetReturn();

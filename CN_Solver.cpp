@@ -99,7 +99,7 @@ void LpSolver::addObjective(string mode,
 			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
 				// var Id
 				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
-				cost += cplexConverter.variables[vId].sending_val * x[vId];
+				cost += cplexConverter.variables[vId].value_paying * x[vId];
 
 				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
 				// 		<< " * " << vId << endl;
@@ -132,7 +132,7 @@ void LpSolver::addObjective(string mode,
 			for (int j = 0; j < cplexConverter.atomicIdToVarIdDict[aeId].size(); j++){
 				// var Id
 				int vId = cplexConverter.atomicIdToVarIdDict[aeId][j];
-				cost += cplexConverter.variables[vId].sending_val * x[vId];
+				cost += cplexConverter.variables[vId].value_paying * x[vId];
 
 				// cout << "adding " << cplexConverter.variables[vId].interest_rate 
 				// 		<< " * " << vId << endl;
@@ -298,7 +298,7 @@ void LpSolver::addObjective(string mode,
 }
 	
 void LpSolver::populatebyrow (CplexConverter& cplexConverter, 
-	IloModel model, IloNumVarArray x, IloRangeArray c, string mode, string purpose, double cRate, double dRate, double haircut, double price)
+	IloModel model, IloNumVarArray x, IloRangeArray c, string mode, string purpose, double cRate, double dRate, double haircut)
 {
 	IloEnv env = model.getEnv();
 	// CAPITAL LETTERS MEAN I NEED YOUR HELP, here is help 

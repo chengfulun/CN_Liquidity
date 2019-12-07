@@ -15,7 +15,7 @@ public:
 
 	CreditNet(int finNumT, double precision, int marketId, 
 		double initR,double initVol,double drate, 
-		double haircut, double mReserve, int maturity, 
+		double haircut, double mReserve, 
 		int valueBins, bool verb);
 	CreditNet();
 	CreditNet(CreditNet &graphT);
@@ -122,10 +122,16 @@ public:
 
 	double price;
 	double price_last;
-	double collateralValue(int nodeIx, double CR, double price, bool useCredit)	
+	double collateralValue(int nodeIx, double CR, double price, bool useCredit);
 	void updateCollateralValues();
 	void requestLines();
-
+	void update_default_rates();
+	double defaultRate(int nodeIx);
+	void updateLineRequests();
+	void updateCreditUtil();
+	void updateCreditSets();
+	void updateCreditLimits();
+	void updateLines();
 	
 };
 

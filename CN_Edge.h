@@ -36,80 +36,6 @@ public:
 	WidgetNode* toWidget;
 
 
-	double AtomicEdge::getSendValue(double IR){
-		if (this->isDebt){
-			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
-		}
-		else{
-			return collateral_value + interest_rate;
-		}
-	}
-
-	double AtomicEdge::getReceiveValue(double IR){
-		if (this->isDebt){
-			return collateral_value + interest_rate;
-		}
-		else{
-			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
-		}
-	}
-
-	double AtomicEdge::getIR(double value){
-		double receiving_ir = (value +  (1-this->CR()) * default_rate) / (1-default_rate);
-		// - this->getReceiveValue();
-		double sending_ir = value - collateral_value;
-		double rr = 0.0;
-		if (sending_ir >= receiving_ir){
-			return receiving_ir;
-		}
-		if (receiving_ir > sending_ir){
-			return (receiving_ir + sending_ir) / 2;
-		}
-		return -100;
-		// - this->getSendValue();
-	}
-
-	void AtomicEdge::updateCollateralValue(double creturns, double areturns){
-		double credit_ratio = this->nodeTo->credit_target / (this->nodeTo->credit_target + this->nodeTo->asset_target);
-		double return_rate = credit_ratio * creturns + (1-credit_ratio)*areturns;
-		if (not this->isDebt){
-			double max_extrapolate = this->nodeTo->getWealth(1.0) / this->CR();
-			double investment_level = this->nodeTo->credit_target + this->nodeTo->asset_target;
-			double max_payment = this->nodeTo->maxCredit(1.0) + this->nodeTo->getScrip();
-			double result = 0;
-			// double target = min(investment_level,max_payment);
-			if (max_extrapolate < investment_level and investment_level < max_payment){
-				result = return_rate * (max_extrapolate - investment_level) / max_extrapolate;
-			}
-			if (investment_level > max_payment){
-				result = return_rate * (max_extrapolate - investment_level) / max_extrapolate;
-			}			
-
-			// if (max_extrapolate < investment_level and investment_level < max_payment){
-				
-			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
-			// 	//negative send
-			// }
-			// if (max_extrapolate > investment_level and investment_level > max_payment){
-			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
-			// 	//positive send
-			// }
-			// else {
-			// 	result = 0.0;
-			// }
-			this->collateral_value = result;
-		}
-		else{
-			double hc = 1 + this->CR();
-			this->collateral_value = return_rate*(this->nodeTo->maxCredit(hc) - this->nodeTo->maxCredit(1.0));
-		}
-		// debt, positive receiving
-		
-
-	double AtomicEdge::CR(){
-		return this->originEdge->singleCreditEdges[singleCreditIndex]->collateralRate;
-	}
-
 	AtomicEdge(const AtomicEdge& a, Edge* e, 
 			int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT){
 		this->originEdge = e;
@@ -124,7 +50,8 @@ public:
 		if (this->isDebt){
 			nodeFromT->atomicEdge_in[this->atomicEdgeId] = this;
 			nodeToT->atomicEdge_out[this->atomicEdgeId] = this;
-		} else {
+		} 
+		else {
 			nodeFromT->atomicEdge_out[this->atomicEdgeId] = this;
 			nodeToT->atomicEdge_in[this->atomicEdgeId] = this;
 		}
@@ -178,6 +105,79 @@ public:
 		<< endl;
 	}
 
+	double getSendValue(double IR){
+		if (this->isDebt){
+			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
+		}
+		else{
+			return collateral_value + interest_rate;
+		}
+	}
+
+	double getReceiveValue(double IR){
+		if (this->isDebt){
+			return collateral_value + interest_rate;
+		}
+		else{
+			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
+		}
+	}
+
+	double getIR(double value){
+		double receiving_ir = (value +  (1-this->CR()) * default_rate) / (1-default_rate);
+		// - this->getReceiveValue();
+		double sending_ir = value - collateral_value;
+		double rr = 0.0;
+		if (sending_ir >= receiving_ir){
+			return receiving_ir;
+		}
+		if (receiving_ir > sending_ir){
+			return (receiving_ir + sending_ir) / 2;
+		}
+		return -100;
+		// - this->getSendValue();
+	}
+
+	void updateCollateralValue(double creturns, double areturns){
+		double credit_ratio = this->nodeTo->credit_target / (this->nodeTo->credit_target + this->nodeTo->asset_target);
+		double return_rate = credit_ratio * creturns + (1-credit_ratio)*areturns;
+		if (not this->isDebt){
+			double max_extrapolate = this->nodeTo->getWealth(1.0) / this->CR();
+			double investment_level = this->nodeTo->credit_target + this->nodeTo->asset_target;
+			double max_payment = this->nodeTo->maxCredit(1.0) + this->nodeTo->getScrip();
+			double result = 0;
+			// double target = min(investment_level,max_payment);
+			if (max_extrapolate < investment_level and investment_level < max_payment){
+				result = return_rate * (max_extrapolate - investment_level) / max_extrapolate;
+			}
+			if (investment_level > max_payment){
+				result = return_rate * (max_extrapolate - investment_level) / max_extrapolate;
+			}			
+
+			// if (max_extrapolate < investment_level and investment_level < max_payment){
+				
+			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
+			// 	//negative send
+			// }
+			// if (max_extrapolate > investment_level and investment_level > max_payment){
+			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
+			// 	//positive send
+			// }
+			// else {
+			// 	result = 0.0;
+			// }
+			this->collateral_value = result;
+		}
+		else{
+			double hc = 1 + this->CR();
+			this->collateral_value = return_rate*(this->nodeTo->maxCredit(hc) - this->nodeTo->maxCredit(1.0));
+		}
+		// debt, positive receiving
+	}
+
+	double CR();
+
+
 };
 
 
@@ -211,7 +211,8 @@ public:
 	}
 
 	SingleCreditEdge(double c_max, double ir, int& globalId, Edge* e, 
-		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT,double cr,bool active)
+		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT,double cr)
+		// ,bool active)
 		: credit_max(c_max), credit_interest_rate(ir),collateralRate(cr),active(active){
 // update atomic edge initiator to include maturity, even for credit edges. may not need maturity for singlecreditedges
 			credit_remain = new AtomicEdge(false, 

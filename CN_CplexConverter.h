@@ -17,6 +17,8 @@ public:
 		double interest_rate;
 		double collateral_cost;
 		double default_cost;
+		double value_receiving;
+		double value_paying;
 		Variable(int v, int a, double val_in, double val_out, double IR) : varId(v), atomicEdgeId(a), value_receiving(val_in), value_paying(val_out), interest_rate(IR) {}
 	};
 
@@ -44,6 +46,11 @@ public:
 	double getIRCost();
 
 	double getDebtCost();
+
+	double valueCluster(int val, int type);
+
+	double getAssetCost();
+
 };
 
 
