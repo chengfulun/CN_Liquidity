@@ -29,6 +29,10 @@ Node::Node(int id){
 	// this->creditReturn = 0;
 	this->creditVol = 0;
 	this->folio_volume = 0.0;
+	this->assets = 0.0;
+	this->credit_premium = 0.01;
+	this->credit_request = 0.0;
+	this->default_counter = 0;
 }
 
 
@@ -77,19 +81,33 @@ void Node::makeMarket(){
 	this->isMarket = true;
 }
 
-void Node::makeDefault(){
-	// for (auto &itIn : atomicEdge_in){
-	// 	itIn.second->zero();
-	// }	
-	// for (auto &itOut : atomicEdge_out){
-	// 	itOut.second->zero();
-	// }
-	this->defaulted = true;
-	// this->creditPayOut.clear();
+double Node::maxExtrapolate(double CR, double haircut){
+	double wealth = this->getWealth(haircut);
+	double result = 0.0;
+	vector <pair<double,double>> edges;
+	for (auto &edge : atomicEdge_in){
+		int tempix = edge.second->singleCreditIndex;
+		double capacity = edge.second->capacity;
+		if (not edge.second->isDebt and wealth > 0){
+			edges.push_back (std::make_pair(CR,capacity));
+			// result += capacity;
+			// wealth -= capacity * CR;
+		}
+	}
+	sort(edges.begin(),edges.end());
+	for (auto &e : edges){
+		result += e.second;
+		wealth -= e.second * e.first;
+		if (wealth < 0){
+			result -= wealth / e.first;
+			return result;
+		}
+	}
+	return result;
 }
 
-double Node::maxCredit(double haircut){
-	double wealth = this->getWealth(haircut);
+double Node::maxCredit(double CR_bonus, double haircut){
+	double wealth = CR_bonus + this->getWealth(haircut);
 	double result = 0.0;
 	double CR;
 	vector <pair<double,double>> edges;
@@ -219,7 +237,7 @@ double Node::getCollateral(double dRate){
 	for (auto &aOut : atomicEdge_out){
 		if (aOut.second->isDebt){
 			temp += aOut.second->CR() * aOut.second->capacity;
-			amt += aOut.second->capacity;
+			// amt += aOut.second->capacity;
 		}
 	}
 
@@ -237,6 +255,7 @@ double Node::getCollateral(double dRate){
 	return temp;
 }
 
+
 double Node::getScrip(){
 	if(defaulted){
 		return 0.0;
@@ -248,6 +267,31 @@ double Node::getScrip(){
 			// * (1.0 + dIn.second->interest_rate);
 		}
 	}
+	temp += this->debt_in;
+	return temp;
+}
+
+
+
+double Node::getDebtCaps(){
+	if(defaulted){
+		return 0.0;
+	}
+	double temp = 0.0;
+	for (auto &eOut : edge_out){
+		for (auto &cOut : eOut.second->singleCreditEdges){
+			if(not cOut->credit_remain->nodeTo->isMarket){
+				temp += cOut->credit_max;				
+			}
+		}
+	}
+	// 	if (dIn.second->isDebt and not dIn.second->nodeTo->isMarket){
+	// 		temp += dIn.second->capacity;
+	// 		// * (1.0 + dIn.second->interest_rate);
+	// 	}
+	// }
+	// temp += this->debt_in;
+	// cout<<"total credit issued: "<<temp;
 	return temp;
 }
 
@@ -268,24 +312,24 @@ double Node::getCash(){
 
 
 double Node::sumAssets(){
-	double s = 0.0;
-	for (auto &a : assets){
-		s += a.second;
-	}
-	return s;
+	// double s = 0.0;
+	// for (auto &a : assets){
+	// 	s += a.second;
+	// }
+	return this->assets;
 }
 
 double Node::getOwe(){
 	double paySum = 0;
 	for (auto &toPay : this->creditPayOut){
-		paySum += toPay.second.second;
+		paySum += toPay.second[1];
 	}	
 	return paySum;
 }
 
 
 double Node::getDemand(double price, double assetR){
-	
+	return 1.0;
 }
 
 double Node::getWealth(double haircut){
@@ -293,12 +337,21 @@ double Node::getWealth(double haircut){
 		return 0.0;
 	}
 	// if(v>0){
-	// // cout<<"node "<<nodeId<<" IOUs "<<this->getScrip()<< " debt "<<this->getDebt()<<" assets "<<this->sumAssets()<<" deposits "<<this->deposits<<" credit "<<getCredit()<<endl;		
+	// cout<<"node "<<nodeId<<" IOUs "<<this->getScrip()<< " debt "<<this->getDebt()<<" assets "<<this->sumAssets()<<" deposits "<<this->deposits<<" credit "<<getCredit()<<" reserves "<<mReserved<<endl;		
 	// }
-	return this->getScrip() - this->getDebt() + this->sumAssets() * haircut - this->deposits;
+	// cout<<"scrip: "<<this->getScrip()<<" debt: "<<getDebt()<<" assets "<<this->sumAssets() * haircut<<" deposits "<<this->deposits<<endl;
+	// cout<<"node "<<nodeId<<" IOUs "<<this->getScrip()<< " debt "<<this->getDebt()<<" assets "<<this->sumAssets()<<" deposits "<<this->deposits<<" credit "<<getCredit()<<" reserves "<<mReserved<<endl;		
+
+	return this->getScrip() - this->getDebt() + this->sumAssets() * haircut - this->deposits + this->mReserved;
 	// double temp = 0;
 	// cout<<nodeNum<<endl;
 }
+
+void Node::printBalance(){
+	cout<<"IOUS: "<<this->getScrip()<<" debt owed: "<<this->getDebt()<<" assets: "<<this->sumAssets()<<" deposits: "<<this->deposits<<" reserves: " << this->mReserved<<
+	" debt_in: "<<debt_in<<" debt_out: "<<debt_out<<" cash: "<<this->getCash()<<endl;
+}
+
 
 // double Node::getMaxPay(){
 // 	double temp = 0.0;
@@ -399,30 +452,62 @@ double Node::creditReturn(double DR){
 	}
 	double sumReturns = 0.0;
 	for (auto &dIn : atomicEdge_in){
-		if (dIn.second->isDebt){
+		if (dIn.second->isDebt and not dIn.second->nodeTo->isMarket){
 			double valRate = dIn.second->interest_rate * (1.0 - DR)
 			- (1.0 - dIn.second->CR()) * DR;
+			if (fabs(valRate) > 10){
+				cout<<"error: Credit Return high! ir: "<< dIn.second->interest_rate<<endl;
+			}
 			sumReturns += dIn.second->capacity * valRate;
 		}
 	}
 	return sumReturns;
 }
 
-double Node::credit2Return(double DR){
+double Node::credit2Return(double DR,double mean){
 	if(defaulted){
 		return 0.0;
 	}
 	double sumReturns = 0.0;
+	double debtSum = 0.0;
 	for (auto &dIn : atomicEdge_in){
-		if (dIn.second->isDebt){
+		if (dIn.second->isDebt and not dIn.second->nodeTo->isMarket){
 			double valRate = dIn.second->interest_rate * (1.0 - DR)
 			- (1.0 - dIn.second->CR()) * DR;
-			sumReturns += dIn.second->capacity * valRate * valRate;
+			sumReturns += dIn.second->capacity * dIn.second->capacity * (valRate - mean) * (valRate - mean);
+			debtSum += dIn.second->capacity;
+
+			// UNUSED BELONGS HERE, need sum of squares for each separate mean
+
+			// int cIx = dIn.second->singleCreditIndex;
+			// sumReturns += dIn.second->originEdge->singleCreditEdges[cIx]->credit_remain->capacity * mean * mean;
 		}
+	}
+	double total_debt_funding = max(debt_reserve,getDebtCaps());
+	double unused = total_debt_funding - debtSum;
+	if(unused >0){
+		sumReturns += unused*unused * mean*mean;
 	}
 	return sumReturns;
 }
 
+double Node::scrip2Sum(){
+	if(defaulted){
+		return 0.0;
+	}
+	double sum_return = 0.0;
+	double debtSum = 0.0;
+	for (auto &dIn : atomicEdge_in){
+		if(dIn.second->isDebt){
+			sum_return += dIn.second->capacity * dIn.second->capacity;			
+			debtSum += dIn.second->capacity;
+		}
+	}
+	double total_debt_funding = max(debt_reserve,getDebtCaps());
+	double unused = total_debt_funding - debtSum;
+	sum_return += unused * unused;	
+	return sum_return;
+}
 
 double Node::getCredit(){
 	if(defaulted){
@@ -449,10 +534,11 @@ double Node::getDebt(){
 			// * (1.0 + dOut.second->interest_rate);
 		}
 	}
+	temp += debt_out;
 	return temp;
 }
 
-void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double mlimit, double haircut){
+void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double mlimit, double haircut){
 	// double E_debt = this->credit_returns_in;
 	// double sigma_sq_debt = this->credit_vol_in;
 	// if(this->leveraged){
@@ -463,41 +549,61 @@ void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_d
 	// 	return;
 	// }
 	double floor = 0.0;
-	if (E_debt<0){
+	if (E_debt<=0){
 		E_debt = 0.0;
 		std::default_random_engine generator;
 		// generator(std::chrono::system_clock::now().time_since_epoch().count());
 		std::uniform_real_distribution<double> distribution(0.0,0.2);		
 	    floor = distribution(generator);
 	}
-	this->lambda = max(0.0,(E*sigma_sq_debt + E_debt*sigma_sq)/(sigma_sq*sigma_sq_debt*theta));
+	this->lambda = max(0.2,(E*sigma_sq_debt + E_debt*sigma_sq)/(sigma_sq*sigma_sq_debt*theta));
 	this->w_assets = max(0.0,min(1.0-(0.2 + floor),E*sigma_sq_debt/(E*sigma_sq_debt + E_debt*sigma_sq)));
 	this->folio_volume = max(0.0,min(this->getWealth(haircut)*mlimit, this->getWealth(haircut)*this->lambda));
 	
-	this->asset_target = folio_volume * w_assets;
-	this->credit_target = folio_volume * (1.0 - w_assets);
-		// pow(pow((1+lambda*(E*w_assets+(1-w_assets)*E_debt)-(theta*lambda*lambda*(sigma_sq*w_assets+(1-w_assets)*sigma_sq_debt))),(1.0-theta))/FFR,1.0/theta));
+	if(this->lambda==0){
+		cout<<"LAMBDA ERROR... debt return: "<<E_debt<<" debt sig: "<<sigma_sq_debt<<endl;
+		// this->lambda == 0.2;
 	}
 
+		// pow(pow((1+lambda*(E*w_assets+(1-w_assets)*E_debt)-(theta*lambda*lambda*(sigma_sq*w_assets+(1-w_assets)*sigma_sq_debt))),(1.0-theta))/FFR,1.0/theta));
+	
+	//fix max_payment...does it include debt if it can't be used during deposits?
+	// does it include any unused, expiring credit?
+	double max_payment = this->maxCredit() + this->getScrip();	
+	// this->credit_request = folio_volume - max_payment;
+	this->asset_target = max(0.0,min(folio_volume,max_payment) * w_assets);
+	this->credit_target = max(0.01,min(folio_volume,max_payment) * (1.0 - w_assets));
+	if (this->asset_target < 0){
+		cout<<"ASSET TARGET ERROR"<<endl;
+		cout<<"asset target: "<<asset_target<<" credit target: "<<credit_target<<endl;
+		cout<<"debt return is "<<E_debt<<endl;
+		cout<<"folio_volume: "<<folio_volume<<" max_payment: "<<max_payment<<endl;
+		cout<<"fc is min of the following: "<<this->getWealth(haircut)*mlimit<<" , "<<this->getWealth(haircut)*this->lambda<<endl;
+		cout<<"wealth "<<this->getWealth(haircut)<<endl;;
+		cout<<"defaulted "<<this->defaulted<<endl;
+	}
+	// this->debt_reserve = this->getScrip * (1.0-w_assets);	
+	}
+
+
 void Node::postCashUpdate(double haircut){
-	double max_payment = this->maxCredit(1.0) + this->getScrip();
+	double max_payment = this->maxCredit() + this->getScrip() - this->mReserved;
 	// - this->mReserve;
 	this->folio_volume = min(this->folio_volume,max_payment);
 	this->lambda = this->folio_volume / this->getWealth(haircut);
-	this->asset_target = folio_volume * w_assets;
+	this->asset_target = max(folio_volume * w_assets,0.0);
 	this->credit_target = folio_volume * (1.0 - w_assets);
+	this->debt_reserve = this->getScrip() * (1.0-w_assets);
 }
 
-
-
-double Node::assetSum(){
-	double t=0;
-	for (auto &asset: assets)
-	{
-		t += asset.second;
-	}
-	return t;
-}
+// double Node::assetSum(){
+// 	double t=0;
+// 	for (auto &asset: assets)
+// 	{
+// 		t += asset.second;
+// 	}
+// 	return t;
+// }
 
 
 

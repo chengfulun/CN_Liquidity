@@ -6,7 +6,9 @@
 #include <algorithm>
 #include <cfloat>
 #include <limits>
-
+#include <string>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -155,6 +157,38 @@ void Graph::modifyCredit(int source,int dest,double credit){
 	}
 }
 
+void Graph::addCredit(int source,int dest,double credit){
+	// double sumC = 0.0;
+	// cout<<" amt to set credit "<<credit<<endl;
+	for (auto& e : this->nodes[source]->edge_out){
+		bool done = false;
+		if(done){
+			break;
+		}
+		if(e.second->nodeTo->nodeId == dest){
+			for (auto& ce : e.second->singleCreditEdges){
+				if(not done){
+					ce->setCredit(credit + ce->credit_max);
+					done = true;
+				}
+				else{
+					ce->setCredit(0.0);
+				}
+
+			// 	double sumNext = sumC + ce->credit_max;
+			// 	if(sumNext > credit){
+			// 		ce->setCredit(max(0.0,credit - sumC));
+			// 	}
+			// 	sumC += ce->credit_max;
+			// }
+			// if(sumC < credit){
+			// 	e.second->singleCreditEdges[0]->setCredit(e.second->singleCreditEdges[0]->credit_max + credit - sumC);
+			// }
+			}
+		}
+	}
+}
+
 void Graph::addMultiEdge(Node* nodeFrom, Node* nodeTo, 
 	double credit_ir, double debt_ir, double currDebt, double cap, double cr){
 
@@ -232,7 +266,7 @@ void Graph::printAtomicIouEdges(ofstream & fout){
 /////////////////////////////////////////////////////////////////////////
 /* Generate Initial Network */
 /////////////////////////////////////////////////////////////////////////
-void Graph::genMarket0Graph(double deposit, double shock, double wealth, double FFR, int marketId, double CR, double EAR, double volatility, bool setT){
+void Graph::genMarket0Graph(double deposit, double shock, double wealth, int marketId, bool setT){
 
 	for (int i = 0; i < nodeNum; ++i){
 		Node* temp = new Node(i);
@@ -249,12 +283,10 @@ void Graph::genMarket0Graph(double deposit, double shock, double wealth, double 
 
 	this->marketId = marketId;	
 	this->expected_deposit = deposit;
-	this->CR = CR;
-	this->expected_asset_return = EAR;
-	this->asset_volatility = volatility;
 	this->deposit_shock = shock;
 	this->FFR = FFR;
-	// default_random_engine generator;
+	this->init_wealth = wealth;
+		// default_random_engine generator;
 	// uniform_real_distribution<double> distribution(0.0, 1.0);
 	// cout<<"nodes done"<<endl;
 	for (int i = 0; i < nodeNum; i++){
@@ -278,19 +310,19 @@ void Graph::genMarket0Graph(double deposit, double shock, double wealth, double 
 		for(int j = 0; j < nodeNum; j++){
 
 
-		if (i != marketId){
-			if (j == marketId){
-				double currency = wealth + this->nodes[i]->deposits;
+			if (i != marketId){
+				if (j == marketId){
+					double currency = wealth + this->nodes[i]->deposits;
 
-				this->addMultiEdge(nodes.find(i)->second, nodes.find(marketId)->second,0.0,0.0,currency,DBL_MAX,0.0);
+					this->addMultiEdge(nodes.find(i)->second, nodes.find(marketId)->second,0.0,0.0,currency,DBL_MAX,0.0);
+				}
+				else if(j != i){
+					this->addMultiEdge(nodes.find(i)->second, nodes.find(j)->second,FFR,0.0,0.0,0.0,0.0);
+				}
+				// this->returns.push_back(FFR);
+				// this->volatilities.push_back(0.2);
+				// this->wealths.push_back(wealth);
 			}
-			else if(j != i){
-				this->addMultiEdge(nodes.find(i)->second, nodes.find(j)->second,FFR,0.0,0.0,0.0,CR);
-			}
-			// this->returns.push_back(FFR);
-			// this->volatilities.push_back(0.2);
-			// this->wealths.push_back(wealth);
-		}
 		
 		// for (int j = 0; j < nodeNum; j++){
 		// 	if (i != marketId && j != marketId && i != j){
@@ -476,22 +508,35 @@ void Graph::setRoutePreference(vector<string> &v){
 
 
 void Graph::setThetas(vector<string> &v){
-     
 	for (int i = 0; i < nodeNum - 1; i++) {
-		nodes[i]->theta = stod(v[i]);
+		stringstream ss(v[i]);
+		vector<string> res;
+
+		while(ss.good() ){
+			string substr;
+			getline(ss,substr, ',');
+			res.push_back(substr);
+		}
+		nodes[i]->theta = stod(res[0]);
+		nodes[i]->CR_base = stod(res[1]);
 	}
 
 	return;
 }
 
-void Graph::setThetas(vector<double> &v){
-     
-	for (int i = 0; i < nodeNum - 1; i++) {
-		nodes[i]->theta = v[i];
+void Graph::printThetas(){
+	for (int i = 0; i < nodeNum - 1; i++){
+		std::cout<<"id: "<<i<<" theta: "<<nodes[i]->theta<<" CR: "<<nodes[i]->CR_base<<endl;
 	}
-
-	return;
 }
+// void Graph::setThetas(vector<double> &v){
+     
+// 	for (int i = 0; i < nodeNum - 1; i++) {
+// 		nodes[i]->theta = v[i];
+// 	}
+
+// 	return;
+// }
 
 //////////////////////////////////////////////////////
 // route on atomic edge

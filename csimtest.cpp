@@ -12,6 +12,7 @@
 #include <mutex>
 #include <random>
 #include <iomanip>
+#include <cstdio>
 
 using namespace rapidjson;
 using namespace std;
@@ -42,18 +43,20 @@ struct Config {
 	string smoothing;
 	string numIR;
 	string epochs;
-	string FFR;
 	string wealth;
 	string deposits;
 	string dShock;
-	string CR;
 	string EAR;
 	string asset_vol;
 	string dRate;
 	string haircut;
 	string initR;
 	string initV;
-	string maturity;
+	string value_bins;
+	string mReserve;
+	string mLimit;
+	string defaulted_periods;
+	string explore_boost;
 	vector<string> assignedStrategy;
 };
 
@@ -82,26 +85,25 @@ void readConfig (Config &config, string inPath) {
 	// PrettyWriter<StringBuffer> writer(sb);
 	// doc.Accept(writer);    // Accept() traverses the DOM and generates Handler events.
 	// puts(sb.GetString());
-	
 	const Value& configObj = doc["configuration"];
 	config.smoothing = configObj["smoothing"].GetString();
 	config.numNodes = configObj["numNodes"].GetString();
-	config.numIR = configObj["numIR"].GetString();
 	config.epochs = configObj["epochs"].GetString();
-	config.FFR = configObj["FFR"].GetString();
 	config.wealth = configObj["wealth"].GetString();
 	config.deposits = configObj["deposits"].GetString();
 	config.dShock = configObj["dShock"].GetString();
-	config.CR = configObj["CR"].GetString();
 	config.EAR = configObj["EAR"].GetString();
 	config.asset_vol = configObj["asset_vol"].GetString();
 	config.dRate = configObj["dRate"].GetString();
 	config.haircut = configObj["haircut"].GetString();
 	config.initR = configObj["initR"].GetString();
 	config.initV = configObj["initV"].GetString();
-	config.maturity = configObj["maturity"].GetString();
+	config.value_bins = configObj["value_bins"].GetString();
+	config.mReserve = configObj["mReserve"].GetString();
+	config.mLimit = configObj["mLimit"].GetString();
+	config.explore_boost = configObj["explore_boost"].GetString();
+	config.defaulted_periods = configObj["defaulted_periods"].GetString();
 	
-
 	const Value& a = doc["assignment"];
 	const Value& b = a["All"];
 	
@@ -155,6 +157,7 @@ void writePayoff (std::vector<PlayerInfo> &players, string outPath) {
 }
 
 int main(int argc, char* argv[]){
+    freopen("output.txt","w",stdout);	
 	string json_folder = argv[1];
 	// cout<<json_folder<<endl;
 	int num_obs = atoi(argv[2]);
@@ -167,30 +170,32 @@ int main(int argc, char* argv[]){
 	// Generator g(2.0, 1.0, 0.0, 10.0);
 	// cout <<  num_obs << endl;
 	double precision = 100000;
-	readConfig(config, json_folder+"/ctestspec.json");
-			// cout << "configed" << endl;
+	readConfig(config, json_folder+"/simulation_spec.json");
+	// cout << "configed" << endl;
 
-	int numIR = atoi(argv[3]);
+	// int numIR = atoi(argv[3]);
 	// cout<<"read config"<<endl;
- 	double FFR = stod(config.FFR);
 
 	credNetConstants.clean();
 
-	for (int i = 0; i < numIR; i++){
-		// credNetConstants.addIr(i);
-		if(i==0){
-			credNetConstants.addIr(0.0);
-		}
-		else{
-			credNetConstants.addIr(FFR + (i-1)/200.0);			
-		}
-	}
+
+	// for (int i = 0; i < numIR; i++){
+	// 	// credNetConstants.addIr(i);
+	// 	if(i==0){
+	// 		credNetConstants.addIr(0.0);
+	// 	}
+	// 	else{
+	// 		credNetConstants.addIr(FFR + (i-1)/200.0);			
+	// 	}
+	// }
 
 	// double threshold = stod(config.edgeProb);
 	// double threshold = atof(argv[5]);
 	int iter = stoi(config.smoothing);
 	int finNum = stoi(config.numNodes);
 	int epochs = stoi(config.epochs);
+ 	int defaulted_periods = stoi(config.defaulted_periods);
+
 	std::vector<double> payoffs(finNum - 1,0.0);
  	// vector<double> capacities = {10};
  	// {3,5,7,9,11}
@@ -200,19 +205,28 @@ int main(int argc, char* argv[]){
  	double wealth = stod(config.wealth);
  	double deposit = stod(config.deposits);
  	double shock = stod(config.dShock);
- 	double cr = stod(config.CR);
+ 	// actual expected return
  	double EAR = stod(config.EAR);
+ 	// actual stdev
  	double asset_vol = sqrt(stod(config.asset_vol));
+ 	// parameter mu
 	double log_mu = log(EAR*EAR/sqrt(EAR*EAR + asset_vol));
+	// parameter sigma
 	double log_vol = sqrt(log(1+asset_vol/(EAR*EAR))); 	
+	// mean reversion
  	double deposit_rate = stod(config.dRate);
  	double haircut = stod(config.haircut);
  	double initR = stod(config.initR);
  	double initV = stod(config.initV); 	
- 	int maturity = stoi(config.maturity); // minus one
  	bool outV = false;
- 	bool outResults = true;
+ 	bool outResults = false;
  	bool randThetas = false;
+
+ 	double value_bins = stod(config.value_bins);
+ 	double mReserve = stod(config.mReserve);
+ 	// multiplier limit on wealth for total investment portfolio
+ 	double mLimit = stod(config.mLimit);
+ 	double explore_boost = stod(config.explore_boost);
  	// {1,2,3,4,5}
  	// * precision;
  	// cout<<"capacity is "<<capacity<<endl;
@@ -224,34 +238,51 @@ int main(int argc, char* argv[]){
 			int rDefaults = 0;
 			int cDefaults = 0;
 			int marketId = finNum - 1;
-			CreditNet creditNet(finNum,precision, marketId, initR, initV, deposit_rate, haircut, maturity, outV);
+
+
+			CreditNet creditNet(shock, finNum,precision, marketId, initR, initV, deposit_rate, deposit, haircut, mReserve, mLimit, value_bins, EAR, asset_vol, defaulted_periods, explore_boost, outV);
 			// cout<<"initialized crednet"<<endl;
-			creditNet.genMarket0Graph(deposit, shock, wealth, FFR, marketId, cr, log_mu, log_vol, randThetas);
+			creditNet.genMarket0Graph(deposit, shock, wealth, marketId, randThetas);
 			// creditNet.genTest0Graph(threshold, numIR, capacity,maxCR,wealth,marketId);
 						// cout<<"generated graph"<<endl;
 			// creditNet.print();
 
 			creditNet.setThetas(config.assignedStrategy);
+			creditNet.record_values();
+			// creditNet.print_values();
+			credNetConstants.setValues(creditNet.all_values,value_bins);
+			creditNet.init_lambdas();
+			// cout<<"set thetas"<<endl;
+			// creditNet.printThetas();
+			// credNetConstants.print();
 			for (int i_e = 0; i_e < epochs; ++i_e){
 				bool vv = true;
 				// if((i_e+1)%10==0 && i_e>0 && outResults){
 				// 	vv = true;
 				// }						
 				// double price = g();
-				// cout<<"start"<<endl;
 				if(outV){
 					cout<<"Epoch----------------"<<i_e<<endl;
 				}
 				cDefaults += creditNet.makeInvest(false,vv);
 				// creditNet.print();
-
+				if (outResults){
+					creditNet.resultsOut_1();
+				}
 				double rr = (credNetConstants.normalDistribution(
-									credNetConstants.globalGenerator)*log_vol*sqrt((double)(maturity - 1))) + log_mu;
+									credNetConstants.globalGenerator))*log_vol + log_mu;
 				double alpha =  exp(rr);
 					// - asset_vol*asset_vol/2.0)*(double)(maturity - 1)+rr);
 				if(outV){cout<<"shock done "<<alpha<<endl;}
 				// cout << window_size - failRateTotal << "   "<<endl;
 				rDefaults += creditNet.shockPay(alpha, false);
+
+				for (int k = 0; k < finNum - 1; k++){
+							// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
+							payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0) * 0.1;
+								// *precision
+							// cout << endl;
+				}				
 					// cout<<"paid IR"<<endl;
 					// cout<<"node "<< l << " processed"<<endl;
 					// cDefaults += creditNet.checkCollateral(l);
@@ -277,12 +308,12 @@ int main(int argc, char* argv[]){
 			
 		
 			}
-			for (int k = 0; k < finNum - 2; k++){
-						// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
-						payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0);
+			// for (int k = 0; k < finNum - 2; k++){
+			// 			// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
+			// 			payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0);
 							// *precision
 						// cout << endl;
-			}
+			// }
 
 				// for (int k = 0; k < finNum - 1; ++k){
 				// 			// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
@@ -294,10 +325,10 @@ int main(int argc, char* argv[]){
 	// cout<<"exit loop 2"<<endl;
 						// cout<<"payouts ready"<<endl;
 		std::vector<PlayerInfo> myList;
-		for (int g = 0; g < finNum - 2; ++g) {
+		for (int g = 0; g < finNum - 1; ++g) {
 			PlayerInfo p;
 			p.strategy = config.assignedStrategy[g];
-			p.payoff = (double)payoffs[g]/(double)iter;
+			p.payoff = (double)payoffs[g]/((double)iter * (double)epochs);
 			p.role = "All";
 			myList.push_back(p);
 			}

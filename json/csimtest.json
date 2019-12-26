@@ -1,0 +1,35 @@
+{
+    "assignment":{
+        "All":[
+            "1.0,1.0",
+            "0.8,1.0",
+            "0.6,1.0",
+            "0.4,1.0",
+            "0.2,1.0",
+            "1.0,0.0",
+            "0.8,0.0",
+            "0.6,0.0",
+            "0.4,0.0",
+            "0.2,0.0"
+        ]
+    },
+    "configuration":{
+        "numNodes": "11",
+        "smoothing": "1",
+        "epochs": "100",
+        "wealth": "10",
+        "deposits": "500",
+        "dShock": "6.1",
+        "EAR": "1.05",
+        "asset_vol": "0.2",
+        "dRate": "0.0",
+        "haircut": "1.0",
+        "initR": "0.01",
+        "initV": "0.01",
+        "value_bins": "5",
+        "mReserve": "0.3",
+        "mLimit": "20",
+        "explore_boost": "0.25",
+        "defaulted_periods": "7"
+    }
+}

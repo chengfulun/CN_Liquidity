@@ -1,0 +1,327 @@
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 0
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 1
+market: 2
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+value: 0
+asset target: 8.33333 credit target: 41.6667
+asset target: 8.33333 credit target: 41.6667
+possible values: 0 ,0 ,
+start
+Epoch----------------0
+Node 0
+From Node 1 To Node 0
+  single credit edge, capacity: 0 ir: 0 cr: 0
+    Atomic Edge, id: 3 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+From Node 0 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0 cr: 0
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 2 capacity: 42 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+From Node 0 To Node 1
+  single credit edge, capacity: 0 ir: 0 cr: 0
+    Atomic Edge, id: 0 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+Atomic Edges: 
+    Atomic Edge, id: 3 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+    Atomic Edge, id: 2 capacity: 42 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 0 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+
+leveraged? 0
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 0
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 1
+market: 2
+start converter
+start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0printing input variables... 4
+Var ID 0, Atomic Edge ID 2, IR 0, sending val 0, receiving val 0, range 0 - 42
+Var ID 1, Atomic Edge ID 5, IR 0, sending val 0, receiving val 0, range 0 - 42
+wealth added 1010 
+0 
+routed 8.33333 collateral from 0
+printing solver results
+8.33333 0 
+paid assets 0
+got assets successfully 8.33333
+Node 1
+From Node 0 To Node 1
+  single credit edge, capacity: 0 ir: 0 cr: 0
+    Atomic Edge, id: 0 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+From Node 1 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0 cr: 0
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 5 capacity: 42 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+From Node 1 To Node 0
+  single credit edge, capacity: 0 ir: 0 cr: 0
+    Atomic Edge, id: 3 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+Atomic Edges: 
+    Atomic Edge, id: 5 capacity: 42 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 0 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 3 capacity: 0 ir: 0 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+
+leveraged? 0
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 0
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 1
+market: 2
+start converter
+start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0printing input variables... 6
+Var ID 0, Atomic Edge ID 2, IR 0, sending val 0, receiving val 0, range 0 - 33.6667
+Var ID 1, Atomic Edge ID 5, IR 0, sending val 0, receiving val 0, range 0 - 42
+wealth added 1010 
+0 
+routed 8.33333 collateral from 1
+printing solver results
+0 8.33333 
+paid assets 0
+got assets successfully 8.33333
+finished asset purchases
+nodenum: 0 default rate: 0
+nodenum: 1 default rate: 0
+got dr
+got returns
+asset target: 3.78788 credit target: 37.8788
+asset R: 0.1 asset V: 0.316228 credit R: 0.1 credit V: 0.01
+node 0 theta 0.1 portfolio size 200 lambda 110 assets 0.0909091 wealth 10
+want assets 100
+asset target: 3.78788 credit target: 37.8788
+asset R: 0.1 asset V: 0.316228 credit R: 0.1 credit V: 0.01
+node 1 theta 1 portfolio size 110 lambda 11 assets 0.0909091 wealth 10
+want assets 10
+got lambdas
+got lines
+got prem
+got csets
+got climits
+node: 1 wants IR to be: 0.8
+node: 1 wants IR to be: 0.8
+node: 0 wants IR to be: 0.8
+node: 0 wants IR to be: 0.8
+got terms
+cleared hist
+makeinvest done
+Node 2
+From Node 1 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0.8 cr: 1
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 5 capacity: 33.6667 ir: 0 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+From Node 0 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0.8 cr: 0
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 2 capacity: 33.6667 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+Atomic Edges: 
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 5 capacity: 33.6667 ir: 0 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 2 capacity: 33.6667 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+
+Node 1
+From Node 0 To Node 1
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 0
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+From Node 1 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0.8 cr: 1
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 5 capacity: 33.6667 ir: 0 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+From Node 1 To Node 0
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 1
+    Atomic Edge, id: 3 capacity: 3.79167 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+Atomic Edges: 
+    Atomic Edge, id: 5 capacity: 33.6667 ir: 0 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 3 capacity: 3.79167 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+
+Node 0
+From Node 1 To Node 0
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 1
+    Atomic Edge, id: 3 capacity: 3.79167 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+From Node 0 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0.8 cr: 0
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 2 capacity: 33.6667 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+From Node 0 To Node 1
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 0
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+Atomic Edges: 
+    Atomic Edge, id: 3 capacity: 3.79167 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+    Atomic Edge, id: 2 capacity: 33.6667 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+
+shock done 0.00681562
+node 0 deposit shock -33.4999 cash 41.6667 credit 3.79167 assets 8.33333 leveraged 0
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 0
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 1
+market: 2
+start converter
+start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0printing input variables... 10
+Var ID 0, Atomic Edge ID 0, IR 0.8, sending val 0, receiving val 0.8, range 0 - 3.79167
+Var ID 1, Atomic Edge ID 1, IR 0.8, sending val 0, receiving val 0.8, range 0 - 1.79769e+308
+Var ID 2, Atomic Edge ID 2, IR 0, sending val 0, receiving val 0, range 0 - 41.6667
+Var ID 3, Atomic Edge ID 3, IR 0.8, sending val 0, receiving val 0.8, range 0 - 3.79167
+Var ID 4, Atomic Edge ID 4, IR 0.8, sending val 0, receiving val 0.8, range 0 - 1.79769e+308
+Var ID 5, Atomic Edge ID 5, IR 0, sending val 0, receiving val 0, range 0 - 33.6667
+wealth added 43.499943.4999 
+IloNumVar(4)[0..3.79167] 
+routed 33.4999 collateral from 0
+printing solver results
+0 0 33.4999 0 0 0 
+node 1 deposit shock 21.8275 cash 41.6667 credit 3.79167 assets 8.33333 leveraged 0
+loop done
+start
+Epoch----------------1
+Node 0
+From Node 1 To Node 0
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 1
+    Atomic Edge, id: 3 capacity: 3.79167 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+From Node 0 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0.8 cr: 0
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 2 capacity: 0 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+From Node 0 To Node 1
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 0
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+Atomic Edges: 
+    Atomic Edge, id: 3 capacity: 3.79167 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+    Atomic Edge, id: 2 capacity: 0 ir: 0 cr: 0 isDebt: 1 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 1 capacity: 1.79769e+308 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 2
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+
+leveraged? 0
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 0
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 1
+market: 2
+start converter
+start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0printing input variables... 40
+Var ID 0, Atomic Edge ID 0, IR 0.8, sending val 0, receiving val 0.8, range 0 - 3.79167
+Var ID 1, Atomic Edge ID 1, IR 0.8, sending val 0, receiving val 0.8, range 0 - 1.79769e+308
+Var ID 2, Atomic Edge ID 3, IR 0.8, sending val 0, receiving val 0.8, range 0 - 3.79167
+Var ID 3, Atomic Edge ID 4, IR 0.8, sending val 0, receiving val 0.8, range 0 - 1.79769e+308
+Var ID 4, Atomic Edge ID 5, IR 0, sending val 0, receiving val 0, range 0 - 35.1855
+wealth added 1.833231.83323 
+IloNumVar(3)[0..3.79167] 
+routed 0.482088 credit to 1 from 0 at IR 0.8
+routed 0.482088 collateral from 1
+printing solver results
+0 0 0.482088 0 0.482088 
+paid assets 0
+got assets successfully 0.482088
+Node 1
+From Node 0 To Node 1
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 0
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+From Node 1 To Node 2
+  single credit edge, capacity: 1.79769e+308 ir: 0.8 cr: 1
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 5 capacity: 34.7034 ir: 0 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+From Node 1 To Node 0
+  single credit edge, capacity: 3.79167 ir: 0.8 cr: 1
+    Atomic Edge, id: 3 capacity: 3.30958 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+    Atomic Edge, id: 6 capacity: 0.482088 ir: 0.8 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 0
+Atomic Edges: 
+    Atomic Edge, id: 6 capacity: 0.482088 ir: 0.8 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 0
+    Atomic Edge, id: 5 capacity: 34.7034 ir: 0 cr: 1 isDebt: 1 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 0 capacity: 3.79167 ir: 0.8 cr: 0 isDebt: 0 isLeveraged: 0 single index 0 from 0 to 1
+    Atomic Edge, id: 4 capacity: 1.79769e+308 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 2
+    Atomic Edge, id: 3 capacity: 3.30958 ir: 0.8 cr: 1 isDebt: 0 isLeveraged: 0 single index 0 from 1 to 0
+
+leveraged? 1
+nodefrom: 1 nodeto: 0
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 2
+nodefrom: 1 nodeto: 0
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 2
+nodefrom: 0 nodeto: 1
+market: 2
+start converter
+start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0start vars
+start clusters
+clusters work
+receiving val: 0sending val: 0printing input variables... 42
+Var ID 0, Atomic Edge ID 0, IR 0.8, sending val 0, receiving val 0.8, range 0 - 0
+Var ID 1, Atomic Edge ID 1, IR 0.8, sending val 0, receiving val 0.8, range 0 - 1.79769e+308
+Var ID 2, Atomic Edge ID 3, IR 0.8, sending val 0, receiving val 0.8, range 0 - 3.30958
+Var ID 3, Atomic Edge ID 4, IR 0.8, sending val 0, receiving val 0.8, range 0 - 1.79769e+308
+Var ID 4, Atomic Edge ID 5, IR 0, sending val 0, receiving val 0, range 0 - 34.7034
+Var ID 5, Atomic Edge ID 6, IR 0.8, sending val 0, receiving val 0, range 0 - 0.482088
+wealth added -5.9432-5.9432 
+0 
+routed 3.94024 collateral from 1
+printing solver results
+0 0 0 0 3.94024 0 
+paid assets 0
+got assets successfully 3.94024
+finished asset purchases
+node: 0 asset0: 0.792043
+node: 0 asset0: 0.792043
+nodenum: 0 default rate: 0.614079
+node: 1 asset0: 1.48423
+node: 1 asset0: 1.48423
+nodenum: 1 default rate: 0.872591
+got dr
+got returns
+asset target: 0.435084 credit target: 4.35084
+asset R: 0.1 asset V: 0.316228 credit R: 0.1 credit V: 0.01
+node 0 theta 0.1 portfolio size 36.6646 lambda 110 assets 0.0909091 wealth 1.83323
+want assets 18.3323
+asset target: 0 credit target: 0
+asset R: 0.1 asset V: 0.316228 credit R: 0.1 credit V: 0.01
+node 1 theta 1 portfolio size 0 lambda 11 assets 0.0909091 wealth -5.9432
+want assets -5.9432
+got lambdas
+got lines
+got prem
+got csets

@@ -12,6 +12,7 @@ using namespace std;
 // forward declaration
 class Graph;
 class Edge;
+class SingleCreditEdge;
 class AtomicEdge;
 class WidgetNode;
 
@@ -59,7 +60,7 @@ public:
 	void makeMarket();
 	double getScrip();
 	double getWealth(double haircut);
-	double credit2Return(double DR);
+	double credit2Return(double DR, double mean);
 	void postCashUpdate(double haircut);
 	bool isMarket;
 	// void payIR();
@@ -67,8 +68,10 @@ public:
 	vector<double> credit_investments;
 	vector<double> credit_returns; // aggregate revenue
 
-	void getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double FFR, double mlimit, double haircut);
+	double getDebtCaps();
+	void getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_debt, double mlimit, double haircut);
 	double theta;
+	double CR_base;
 	double deposits;
 	double lambda;
 	double w_assets;
@@ -77,7 +80,8 @@ public:
 
 	double assetSum();
 	// maturity, amount
-	vector<pair<int, double>> assets;
+	// vector<pair<int, double>> 
+	double assets;
 	double sumAssets();
 	void print(); 
 	// double creditReturn;
@@ -86,11 +90,12 @@ public:
 	double credit_returns_in;
 	double credit_vol_in;
 	unordered_map<int,double> creditPayIn;
-	unordered_map<int,pair<double,double>> creditPayOut;	
+	unordered_map<int,vector<double>> creditPayOut;	
 	void buyAssets(double amt);
 	double getCredit();
 	double folio_volume; 
 	int been_defaulted = 0;
+	int default_counter;
 	double getOwe();
 	double getDemand(double price, double assetR);
 	double expected_creditrevenue();
@@ -103,7 +108,8 @@ public:
 	double getInterestOwed();
 
 	// collateral value
-	double maxCredit(double haircut);
+	double maxCredit(double bonus=0.0, double hc = 1.0);
+	double maxExtrapolate(double CR, double haircut= 1.0);
 
 	void updateWealthReturn();
 	void updateAssetReturn();
@@ -115,11 +121,15 @@ public:
 	// double updateWealthHist();
 	// double updateAssetHist();
 	// double updateCreditHist();
+	void printBalance();
 
 	vector<double> wealth_history;
 	vector<double> asset_returns;
 	vector<double> asset_investments;
 	vector<double> asset_leverage_interest;
+
+	int new_flag = 0;
+	double credit_premium;
 
 	double wealth_return;
 	double asset_return;
@@ -130,8 +140,13 @@ public:
 	double asset_aggression;
 	double credit_aggression;
 
-	double creditRequestTarget = 0.0;
+	double credit_request;
+	double debt_reserve;
 
+	double debt_in = 0;
+	double debt_out = 0;
+	double scrip2Sum();
+	// void updateNodePremium(double thresh, double uprate, double )
 
 };
 

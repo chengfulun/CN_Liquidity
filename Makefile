@@ -11,9 +11,13 @@ LIBFORMAT  = static_pic
 # the directories where CPLEX and CONCERT are installed.
 #
 #------------------------------------------------------------
+# 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS)
+CPLEXHOME = /home/frcheng/CPLEX/CPLEX_Studio128
 
-CPLEXDIR      = $(CPLEXHOME)/cplex
-CONCERTDIR    = $(CPLEXHOME)/concert
+CPLEXDIR = $(CPLEXHOME)/cplex/
+# /home/frcheng/CPLEX/CPLEX_Studio1228/cplex
+CONCERTDIR = $(CPLEXHOME)/concert/
+# $(CPLEXHOME)/concert
 # use for CAEN
 # CPLEXDIR      = /usr/caen/cplex-12.6/cplex
 # CONCERTDIR    = /usr/caen/cplex-12.6/concert
@@ -21,6 +25,9 @@ CONCERTDIR    = $(CPLEXHOME)/concert
 # ---------------------------------------------------------------------
 # Compiler selection 
 # ---------------------------------------------------------------------
+
+CPPFLAGS = -I${CPLEXHOME}/cplex/include/ -I${CPLEXHOME}/concert/include/ -O -pthread -fPIC -DNDEBUG
+
 
 CCC = g++ -O0
 CC  = gcc -O0
@@ -45,10 +52,9 @@ CONCERTLIBDIR = $(CONCERTDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 
 CCLNDIRS  = -L$(CPLEXLIBDIR) -L$(CONCERTLIBDIR)
 CLNDIRS   = -L$(CPLEXLIBDIR)
-CCLNFLAGS = -lconcert -lilocplex -lcplex -lm -lpthread
+CCLNFLAGS = -lconcert -lilocplex -lcplex -lm -lpthread -ldl
 CLNFLAGS  = -lcplex -lm -lpthread
 JAVA      = java  -d64 -Djava.library.path=$(CPLEXDIR)/bin/x86-64_linux -classpath $(CPLEXJARDIR):
-
 
 all:
 	make all_c
@@ -1368,14 +1374,15 @@ simCtestP:
 	g++ -g -c CN_CplexConverter.cpp -std=c++11
 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_Solver.cpp -std=c++11
 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_CreditNet.cpp -std=c++11
-	$(CCC) -g $(CCFLAGS) $(CPPFLAGS) $(CCLNDIRS) -o simCollateraltestP csimtest_payments.cpp *.o $(CCLNFLAGS) -std=c++11
+	$(CCC) -g $(CCFLAGS) $(CPPFLAGS) $(CCLNDIRS) -o simCollateraltestP csimtest.cpp *.o $(CCLNFLAGS) -std=c++11
 	# ./testCollateral json'
 	# ./simCollateraltest json 1 2 > 1IR
 	# ./simCollateraltest json 1 1 > 0IR
 	# ./simCollateraltest json 1 3 > 2IR
-	./simCollateraltestP json 1 1 > adjTest0
-	./simCollateraltestP json 1 3 > adjTest2
-	./simCollateraltestP json 1 2 > adjTest1
+	./simCollateraltestP json 1
+# 	> adjTest0
+# 	./simCollateraltestP json 1 > adjTest2
+# 	./simCollateraltestP json 1 > adjTest1
 
 
 

@@ -20,6 +20,7 @@ public:
 	double CR;
 	double deposit_shock;
 	double FFR;
+	double init_wealth;
 	unordered_map<int, Node*> nodes;
 	list<Edge*> edges;
 	unordered_map<int, AtomicEdge*> atomicEdges;
@@ -41,6 +42,8 @@ public:
 	// Graph& operator=(Graph &graphT);
 	// ~Graph();
 	void modifyCredit(int s, int t, double credit);
+	void addCredit(int s, int t, double credit);
+
 	void deleteEdges();
 	void print();
 	void printAtomicEdges();
@@ -59,7 +62,9 @@ public:
 	// void generateTestGraph2();
 	// void generateTestGraph3();
 	void genTest0Graph(double threshold, int numIR, double cap, double maxCR, double wealth, int marketId);
-	void genMarket0Graph(double deposit, double shock, double wealth, double FFR, int marketId, double CR, double EAR, double volatility, bool setT);
+	void genMarket0Graph(double deposit, double shock, double wealth, int marketId, bool setT);
+	
+	void printThetas();
 	// void genTest1Graph(double threshold, int numIR, int cap);
 
 };

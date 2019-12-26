@@ -11,38 +11,34 @@ CredNetConstants credNetConstants;
 
 
 void CredNetConstants::print(){
-	cout << "possible irs: ";
-	for (int i = 0; i < totalIrs.size(); ++i){
-		cout << totalIrs[i]<<" ,";
-	}
-	cout << "possible crs: ";
-	for (int i = 0; i < totalCrs.size(); ++i){
-		cout << totalCrs[i]<<" ,";
+	cout << "possible values: ";
+	for (int i = 0; i < totalValues.size(); ++i){
+		cout << totalValues[i]<<" ,";
 	}
 	cout << endl;
 }
 
 
-void CredNetConstants::addIr(double ir){
-	totalIrs.push_back(ir);
-}
+// void CredNetConstants::addIr(double ir){
+// 	totalIrs.push_back(ir);
+// }
 
-void CredNetConstants::addCr(double cr){
-	totalCrs.push_back(cr);
-}
+// void CredNetConstants::addCr(double cr){
+// 	totalCrs.push_back(cr);
+// }
 
-void CredNetConstants::addDr(double dr){
-	totalDrs.push_back(dr);
-}
+// void CredNetConstants::addDr(double dr){
+// 	totalDrs.push_back(dr);
+// }
 
-void CredNetConstants::addAr(double ar){
-	totalArs.push_back(ar);
-}
+// void CredNetConstants::addAr(double ar){
+// 	totalArs.push_back(ar);
+// }
 
 
-void CredNetConstants::priceUpdate(double val){
-	assetPrice = val;
-}
+// void CredNetConstants::priceUpdate(double val){
+// 	assetPrice = val;
+// }
 
 void CredNetConstants::setAllValues(vector<double> irs,vector<double> crs,vector<double> drs,vector<double> ars){
 	// for (auto &rate : irs){
@@ -69,10 +65,7 @@ void CredNetConstants::setAllValues(vector<double> irs,vector<double> crs,vector
 }
 
 void CredNetConstants::clean(){
-	totalIrs.clear();
-    totalCrs.clear();
-    totalDrs.clear();
-    totalArs.clear();    
+	totalValues.clear();
 }
 
 typedef std::size_t                  SizeT;
@@ -412,20 +405,58 @@ void ClassifyJenksFisherFromValueCountPairs(LimitsContainer& breaksArray, SizeT 
 }
 
 void CredNetConstants::setValues(vector<double> values, int k){
-	ValueCountPairContainer sortedUniqueValueCounts;
-	GetValueCountPairs(sortedUniqueValueCounts, &values[0], values.size());
-
-	// std::cout << "Finding Jenks ClassBreaks..." << std::endl;
-	LimitsContainer resultingbreaksArray;
-	ClassifyJenksFisherFromValueCountPairs(resultingbreaksArray, k, sortedUniqueValueCounts);
-	// std::cout << "Reporting results..." << std::endl;
-	// for (double breakValue: resultingbreaksArray)
-	// 	std::cout << breakValue << std::endl << std::endl;
-	// cout<<"sortedUniqueValueCounts"<<endl;
-	// for (std::pair<double, CountType> vc : sortedUniqueValueCounts)
-	// 	cout<< vc.first<<" "<<vc.second <<endl;
-	for (int i=1;i<k;++i){
-		totalValues.push_back(resultingbreaksArray[i]);
+	totalValues.clear();
+	if(values.size()==0){
+		totalValues.push_back(0.0);
 	}
-	totalValues.push_back(sortedUniqueValueCounts[sortedUniqueValueCounts.size() - 1].first);
+	set <double> uniques;
+	for (int i = 0; i < values.size();i++){
+		uniques.insert(values[i]);
+	}
+
+	// vector<double> values1 = values;
+	// sort(values1.begin(), values1.end()); 
+	// vector<double>::iterator uniques = unique(values1.begin(), values1.begin() + values1.size());
+	// values1.resize(std::distance(values1.begin(), uniques));
+	vector <double> input;
+	double max_elem = -100000;
+	for (auto elem : uniques)
+	{
+		if (fabs(elem) > 1){
+			continue;
+		}
+		// std::cout << "cluster element "<<elem << " , ";
+		input.push_back(elem);
+		if (elem > max_elem){
+			max_elem = elem;
+		}
+	}
+
+	if (uniques.size() > k){
+		ValueCountPairContainer sortedUniqueValueCounts;
+		GetValueCountPairs(sortedUniqueValueCounts, &input[0], input.size());
+
+		// std::cout << "Finding Jenks ClassBreaks..." << std::endl;
+		LimitsContainer resultingbreaksArray;
+		ClassifyJenksFisherFromValueCountPairs(resultingbreaksArray, k, sortedUniqueValueCounts);
+		// std::cout << "Reporting results..." << std::endl;
+		for (double breakValue: resultingbreaksArray)
+		// 	std::cout << breakValue << std::endl << std::endl;
+		// cout<<"sortedUniqueValueCounts"<<endl;
+		// for (std::pair<double, CountType> vc : sortedUniqueValueCounts)
+		// 	cout<< vc.first<<" "<<vc.second <<endl;
+
+		for (int i=0;i<k;++i){
+			totalValues.push_back(resultingbreaksArray[i]);
+		}
+		totalValues.push_back(sortedUniqueValueCounts[sortedUniqueValueCounts.size() - 1].first);		
+	}
+	else{
+		for (auto elem : uniques){
+			totalValues.push_back(elem);
+		}
+	}
+	// totalValues.push_back(max_elem + 0.01);
+	// totalValues.push_back(max_elem + 0.5);
+
 }

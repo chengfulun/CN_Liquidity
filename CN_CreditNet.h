@@ -13,10 +13,10 @@ private:
 
 public:
 
-	CreditNet(int finNumT, double precision, int marketId, 
-		double initR,double initVol,double drate, 
-		double haircut, double mReserve, 
-		int valueBins, bool verb);
+	CreditNet(double dVol, int finNumT, double precision, int marketId, 
+		double initR,double initVol,double drate, double deposit,
+		double haircut, double mReserve, double mLimit,
+		int valueBins, double EAR, double asset_vol, int defaulted_periods, double explore_boost, bool verb);
 	CreditNet();
 	CreditNet(CreditNet &graphT);
 	CreditNet& operator=(CreditNet &graphT);
@@ -31,15 +31,19 @@ public:
 	int pay(int fid1, int fid2, double amt, string mode, int transSeqNum);
 	int payCollateral(int fid, double amt);
 	void activateReserves(int fid);
-	void deactivateReserves(int fid);	
+	//mode 0 means only reserve for debt repayment, not lending
+	void deactivateReserves(int fid, int mode =0);
+	void print_values();
+	void init_lambdas();
 	// vector<double> returns;
 	// vector<double> volatilities;
 	// vector<double> wealths;
 	// vector<double> credits;
 	// vector<double> credits_last;
-	// vector<double> cReturns;
-	// vector<double> c2Returns;
+	vector<double> cReturns;
+	vector<double> c2Returns;
 
+	double expected_deposits;
 	// credit market
 	vector<double> credit_requests;
 	vector<double> credit_premiums;
@@ -54,6 +58,8 @@ public:
 	vector<double> asset_coc;
 	vector<double> asset_amt;
 	vector<double> debt_amt;
+
+	vector< vector<int> > active_set_statuses;
 
 	// initial options
 	bool alternate = 0;
@@ -72,6 +78,7 @@ public:
 	double creturn_all;
 	double creturn2_all;
 
+	double mLimit;
 	// double dr_all;
 	// double cr_all;
 	// double ir_all;
@@ -89,16 +96,19 @@ public:
 	vector<int> default_wealth;
 	vector<int> deposit_losses;
 	vector<int> creditor_losses;
+	vector<double> all_values;
+
+	void record_values();
 
 	int shockPay(double alpha, bool verbose);
 	double getReturn(int nodeNum, string mode);
-	// int ntrials = 0;
+	int ntrials = 0;
 	void updateReturns();
 	int makeInvest(bool v, bool verb);
 	double makeLiquidate(int fid, double amt);
 	vector<double> credit_shares(int ix);
 
-	std::tuple<double,double,double> payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double drate, double haircut);
+	std::tuple<double,double,double> payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double drate, double haircut, double crate);
 	// (check,asset_coc,debt_coc)
 	void updateValueBins();
 	double deposit_rate;
@@ -122,6 +132,7 @@ public:
 
 	double price;
 	double price_last;
+	void setReserves();
 	double collateralValue(int nodeIx, double CR, double price, bool useCredit);
 	void updateCollateralValues();
 	void requestLines();
@@ -129,10 +140,34 @@ public:
 	double defaultRate(int nodeIx);
 	void updateLineRequests();
 	void updateCreditUtil();
-	void updateCreditSets();
+	void updateLambdas();
+	void updateCreditPremiums();
+	void updateCreditTerms();
 	void updateCreditLimits();
-	void updateLines();
-	
+	void updateCreditSets(double thresh, int inactive_periods);
+	void updateCreditPremiums(double thresh, double uprate, double downrate);
+	void restore_defaulted(int fid);
+	void postCashUpdateLambda();
+
+	vector<double> debt2_amt;
+
+	void makeDefault(int fid);
+	void clear_history();
+	double expected_asset_return;
+	int defaulted_periods;
+	double asset_volatility;
+	double explore_boost;
+
+	double log_mu;
+	double log_vol;
+	double debt_coc_total;
+	vector<double> cReturns_real;
+	vector<double> debt_vol;
+	double alpha;
+	double payCash(int fid, double amt);
+	double dVol;
+	double dRevert;
+
 };
 
 

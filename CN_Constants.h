@@ -12,11 +12,6 @@ using namespace std;
 class CredNetConstants{
 
 public:
-	vector<double> totalIrs;
-	double assetPrice;
-	vector<double> totalCrs;
-	vector<double> totalDrs;
-	vector<double> totalArs;
 	vector<double> totalValues;
 
 	default_random_engine globalGenerator;

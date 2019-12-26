@@ -14,7 +14,7 @@ double CplexConverter::valueCluster(int val, int type){
 		// even if some monotone ones are also prevented
 		double last_cluster = credNetConstants.totalValues[0];
 		double cluster = 0;
-		for (int i = 1; i < credNetConstants.totalValues.size(); ++i){
+		for (int i = 1; i < credNetConstants.totalValues.size(); i++){
 			cluster = credNetConstants.totalValues[i];
 			if (val < cluster){
 				return last_cluster;
@@ -25,20 +25,21 @@ double CplexConverter::valueCluster(int val, int type){
 	}
 	// receiving needs to assume a valuation cluster greater than value
 	double cluster = INT_MIN;
-	for (int i; i < credNetConstants.totalValues.size(); ++i){
+	for (int i=0; i < credNetConstants.totalValues.size(); i++){
 		double cluster = credNetConstants.totalValues[i];
 		if (val <= cluster){
 			return cluster;
 		}
-	}	
+	}
+	return 0.0;	
 }
 
 void CplexConverter::constructCplex(Graph* g, Node* s, Node* t, double req, int transSeqNumT, bool verb){
-	graph = g;
-	src = s;
-	dest = t;
-	request = req;
-	transSeqNum = transSeqNumT;
+	this->graph = g;
+	this->src = s;
+	this->dest = t;
+	this->request = req;
+	this->transSeqNum = transSeqNumT;
 	this->verb = verb;
 
 	int globalVarId = 0;
@@ -48,13 +49,11 @@ void CplexConverter::constructCplex(Graph* g, Node* s, Node* t, double req, int 
 		if (at->capacity <= 0.0){
 			continue;
 		}
-		// cout<<"atomic edge done"<<endl;
 		bool leveraged = at->isLeveraged;
 		bool defaultedTo = at->nodeTo->defaulted;
 		bool defaultedFrom = at->nodeFrom->defaulted;
 		int credId = at->singleCreditIndex;
-		bool active = at->originEdge->singleCreditEdges[credId]->active;
-
+		// bool active = at->originEdge->singleCreditEdges[credId]->active;
 		// bool intermediate = true;
 		if (at->isDebt){
 			// if(at->originEdge->nodeTo->nodeId==dest->nodeId ||at->originEdge->nodeTo->nodeId==(g->nodes.size()-1)){
@@ -71,9 +70,11 @@ void CplexConverter::constructCplex(Graph* g, Node* s, Node* t, double req, int 
 			// 	if (sending_ir >= receiving_ir and sending_ir ){
 			// 		Varoable v(tempId,at->atomicEdgeId,val,)
 			// 	}
-			
 			double receiving_val = this->valueCluster(at->getReceiveValue(at->interest_rate),0);
 			double sending_val = this->valueCluster(at->getSendValue(at->interest_rate),1);
+
+			// cout<<"receiving val: "<<receiving_val<<endl;
+			// cout<<"sending val: "<<sending_val<<endl;
 
 			// if (receiving_val <= sending_val){
 			// 	Variable v(tempId, at->atomicEdgeId, receiving_val, sending_val, at->interest_rate);
@@ -109,7 +110,13 @@ void CplexConverter::constructCplex(Graph* g, Node* s, Node* t, double req, int 
 
 			for (int i = 0; i < credNetConstants.totalValues.size(); ++i){
 				// routing value must exceed receiver's cluster
-				if (credNetConstants.totalValues[i] > receiving_val){
+				if (credNetConstants.totalValues[i] > 0.0 and at->nodeTo->isMarket){
+					continue;
+				}
+				if (at->default_rate == 1){
+					continue;
+				}
+				if (credNetConstants.totalValues[i] >= receiving_val){
 
 					int tempId = globalVarId++;
 					// cout << "adding credit: " << tempId << " " << at->atomicEdgeId << " " << at->interest_rate << endl;
@@ -119,7 +126,8 @@ void CplexConverter::constructCplex(Graph* g, Node* s, Node* t, double req, int 
 					// this->valueCluster(at->getSendValue() + at->interest_rate - paid_ir,1);
 					Variable v(tempId, at->atomicEdgeId, credNetConstants.totalValues[i],sent_value , paid_ir);
 					variables.push_back(v);
-					if (defaultedFrom || leveraged || not active){
+					if (defaultedFrom || leveraged || paid_ir< at->interest_rate){
+						// || not active
 						// || (intermediate &&(at->interest_rate==credNetConstants.totalIrs[1]) )){
 						capacities.push_back(0.0);
 					}
@@ -145,11 +153,14 @@ void CplexConverter::printInput(){
 		cout << "Var ID " << variables[i].varId 
 		<< ", Atomic Edge ID " << variables[i].atomicEdgeId
 		<< ", IR " << variables[i].interest_rate 
+		<< ", sending val " << variables[i].value_paying 		 
+		<< ", receiving val " << variables[i].value_receiving 		 
 		<< ", range 0 - " << capacities[i] << endl;
 	}
 }
 
 void CplexConverter::printResult(){
+	cout<<"printing solver results"<<endl;
 	for (int i = 0; i < results.size(); ++i){
 		cout << results[i] << " ";
 	}
@@ -191,7 +202,7 @@ double CplexConverter::getAssetCost(){
 			continue;
 		}
 		int id = variables[i].atomicEdgeId;	
-		int ir = variables[i].interest_rate;			
+		double ir = variables[i].interest_rate;			
 		bool isDebt = this->graph->atomicEdges[id]->isDebt;
 
 		int Id;
@@ -205,7 +216,13 @@ double CplexConverter::getAssetCost(){
 			toId = this->graph->atomicEdges[id]->nodeFrom->nodeId;			
 		}
 		if(Id == srcId){
-			capcost += results[i] * this->graph->atomicEdges[id]->getSendValue(ir);
+			capcost += -results[i] * ir;
+			// this->graph->atomicEdges[id]->getSendValue(ir);
+			// cout<<"asset costs added "<<this->graph->ir<<endl;
+			// cout<<"asset costs added IR paid was: "<<ir<<endl;
+			// cout<<"amount was "<<results[i]<<endl;;
+			// -results[i] * ir<<endl;
+			// this->graph->atomicEdges[id]->getSendValue(ir)<<endl;
 			// variables[i].sending_val;
 		}
 	}
@@ -252,7 +269,7 @@ double CplexConverter::getDebtCost(){
 		int toId;
 		int id = variables[i].atomicEdgeId;
 		bool isDebt = this->graph->atomicEdges[id]->isDebt;
-		int ir = variables[i].interest_rate;			
+		double ir = variables[i].interest_rate;			
 
 		if (results[i] == 0){
 			continue;
@@ -278,7 +295,8 @@ double CplexConverter::getDebtCost(){
 
 			std::vector<double>::iterator position = std::find(credits_used[Id].begin(), credits_used[Id].end(), results[i]);
 			if (position != credits_used[Id].end()){
-				capcost += results[i] * this->graph->atomicEdges[id]->getSendValue(ir);			
+				capcost += -results[i] * ir;
+				// * this->graph->atomicEdges[id]->getSendValue(ir);			
 		    	credits_used[Id].erase(position);			
 			} // == myVector.end() means the element was not found
 
@@ -294,8 +312,30 @@ double CplexConverter::getDebtCost(){
 
 		}
 	}
+	// cout<<"debt costs added "<<capcost<<endl;
 	return capcost;
 } 
+
+double CplexConverter::check(){
+	double routed = 0;
+	int srcId = this->src->nodeId;
+	for (int i = 0; i < variables.size(); ++i){
+		int id = variables[i].atomicEdgeId;		
+		bool isDebt = this->graph->atomicEdges[id]->isDebt;
+		int Id;
+		if (isDebt){
+			Id = this->graph->atomicEdges[id]->nodeFrom->nodeId;
+		}
+		else{
+			Id = this->graph->atomicEdges[id]->nodeTo->nodeId;
+		}
+		if(Id == srcId){
+			routed += results[i];
+		}
+	}
+	return routed;
+}
+
 
 double CplexConverter::copyBack(){
 	double routed = 0;
@@ -331,11 +371,19 @@ double CplexConverter::copyBack(){
 			}
 			if(Id == this->graph->marketId){
 				cout<<"routed "<< results[i]<<" collateral to "<<toId<<endl;
-			}	
+			}
+			// if (Id == this->src){
+
+			// }
 		}	
 		// cout<<"copied ir: "<<variables[i].print()<<endl;
+		// this->graph->atomicEdges[id]->print();
 		this->graph->atomicEdges[id]
 			->route(results[i], variables[i].interest_rate, this->graph, this->transSeqNum);
+		
+		if (verb and not this->graph->atomicEdges[id]->isDebt and this->graph->atomicEdges[id]->interest_rate != variables[i].interest_rate){
+			cout<<"contract is: "<<this->graph->atomicEdges[id]->interest_rate<<" routed IR: "<< variables[i].interest_rate<<endl;
+		}
 	}
 	// cout<<"copying done"<<endl;
 	return routed;

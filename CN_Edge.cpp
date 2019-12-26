@@ -39,9 +39,7 @@ SingleCreditEdge* Edge::addSingleCreditEdge(double interest_rate, double cap,
 	
 }
 
-double AtomicEdge::CR(){
-	return this->originEdge->singleCreditEdges[singleCreditIndex]->collateralRate;
-}
+
 
 void Edge::routeAtomicEdge(AtomicEdge* a, double flow, double interest_rate, 
 	int& atomicGlobalId, unordered_map<int, AtomicEdge*>& atomicMap, int transSeqNum){
@@ -97,4 +95,8 @@ double getNodeCurrBalance(Node* n){
 	// cout<<"debt out done"<<endl;
 
 	return temp;
+}
+
+double AtomicEdge::CR(){
+	return this->originEdge->singleCreditEdges[this->singleCreditIndex]->collateralRate;
 }

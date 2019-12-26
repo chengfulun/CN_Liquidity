@@ -47,10 +47,12 @@ public:
 		atomicMap[this->atomicEdgeId] = this;
 		nodeFrom = nodeFromT;
 		nodeTo = nodeToT;
+		// nodeFrom is the creditor that holds debt
 		if (this->isDebt){
 			nodeFromT->atomicEdge_in[this->atomicEdgeId] = this;
 			nodeToT->atomicEdge_out[this->atomicEdgeId] = this;
 		} 
+		// nodeFrom is the creditor that can be paid using debt
 		else {
 			nodeFromT->atomicEdge_out[this->atomicEdgeId] = this;
 			nodeToT->atomicEdge_in[this->atomicEdgeId] = this;
@@ -97,7 +99,7 @@ public:
 
 	void print() {
 		cout << "    Atomic Edge, id: " << atomicEdgeId << " " 
-		<< "capacity: " << capacity << " ir: " << interest_rate 
+		<< "capacity: " << capacity << " ir: " << interest_rate << " cr: " << CR()
 		<< " isDebt: " << isDebt
 		<< " isLeveraged: " << isLeveraged
 		<< " single index " << singleCreditIndex 
@@ -105,21 +107,80 @@ public:
 		<< endl;
 	}
 
+
+	double CR();
+
 	double getSendValue(double IR){
+		double sendVal;
+		if(this->nodeTo->isMarket or this->nodeFrom->isMarket){
+			return 0.0;		
+		}
+		if (this->default_rate > 10){
+			this->default_rate = 0.0;
+		}
+		if (this->collateral_value < -10){
+			this->collateral_value = 0.0;
+		}
+
+		if (this->collateral_value > 10){
+			this->collateral_value = 0.0;
+		}
+
 		if (this->isDebt){
-			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
+			sendVal = -(1-this->default_rate) * IR + (1-this->CR()) * this->default_rate;
+			if (this->default_rate > 10000){
+				cout<<"dr error"<<endl;
+			}
 		}
 		else{
-			return collateral_value + interest_rate;
+			sendVal = this->collateral_value - IR;
 		}
+		if(fabs(sendVal)>10000 ){
+			cout<<"sendval too high value"<<endl;
+			cout<<"capacity "<<this->capacity<<" nodeFrom: "<<this->nodeFrom->nodeId<<" defaulted "<<this->nodeFrom->defaulted<<" nodeTo: "<<this->nodeTo->nodeId<<" defaulted "<<this->nodeTo->defaulted<<" val: "<<sendVal<<" isDebt: "<<this->isDebt<<" cval: "<<this->collateral_value<<" IR: "<<IR<<" dr: "<<this->default_rate<<endl;
+		}
+
+		return max(-0.8,min(0.0,sendVal));
 	}
 
 	double getReceiveValue(double IR){
+		if(this->nodeTo->isMarket or this->nodeFrom->isMarket){
+			return 1000000000000000;
+		}
+		if (this->default_rate > 10){
+			this->default_rate = 0.0;
+		}
+		if (this->collateral_value < -10){
+			this->collateral_value = 0.0;
+		}
+
+		if (this->collateral_value > 10){
+			this->collateral_value = 0.0;
+		}
+
+		double rVal;
 		if (this->isDebt){
-			return collateral_value + interest_rate;
+			rVal = this->collateral_value + IR;
 		}
 		else{
-			return (1-default_rate) * interest_rate - (1-this->CR()) * default_rate;
+			rVal = (1-this->default_rate) * IR - (1-this->CR()) * this->default_rate;
+		}
+		if(fabs(rVal)>10000 ){
+			cout<<"receivingVal too high value"<<endl;
+			cout<<"capacity "<<this->capacity<<" nodeFrom: "<<this->nodeFrom->nodeId<<" defaulted "<<this->nodeFrom->defaulted<<" nodeTo: "<<this->nodeTo->nodeId<<" defaulted "<<this->nodeTo->defaulted<<" val: "<<rVal<<" isDebt: "<<this->isDebt<<" cval: "<<this->collateral_value<<" IR: "<<IR<<" dr: "<<this->default_rate<<endl;
+		}
+		return min(0.8,max(0.0,rVal));	
+	}
+
+	void updateDR(double DR){
+		if(this->nodeTo->isMarket or this->nodeTo->defaulted){
+			this->default_rate = 0.0;
+		}
+		else{
+			this->default_rate = DR;
+		}
+		if(this->default_rate > 1.0){
+			cout<<"default rate error"<<endl;
 		}
 	}
 
@@ -139,21 +200,48 @@ public:
 	}
 
 	void updateCollateralValue(double creturns, double areturns){
+
+
 		double credit_ratio = this->nodeTo->credit_target / (this->nodeTo->credit_target + this->nodeTo->asset_target);
-		double return_rate = credit_ratio * creturns + (1-credit_ratio)*areturns;
+		// cout<<"nodenum "<<this->nodeTo->nodeId<<endl;
+		// cout<<"credit_ratio: "<<credit_ratio<<endl;
+		// cout<<"credit_target: "<<this->nodeTo->credit_target<<endl;
+		// cout<<"asset_target: "<<this->nodeTo->asset_target<<endl;		
+		// cout<<"defaulted? "<<this->nodeTo->defaulted<<endl;
+		// cout<<"wealth? "<<this->nodeTo->getWealth(1.0)<<endl;
+		// cout<<"creturns: "<<creturns<<endl;
+		// cout<<"areturns: "<<areturns<<endl;
+		double return_rate = credit_ratio * min(0.5,creturns) + (1-credit_ratio)*areturns;
+		if(fabs(return_rate > 10)){
+			cout<<"error: rr too high! "<<"return rate: "<<return_rate<<" ar: "<<areturns<<" cr: "<<creturns<<endl;
+		}
+
+		if(fabs(return_rate > 10)){
+			return_rate = areturns;
+		}		
 		if (not this->isDebt){
-			double max_extrapolate = this->nodeTo->getWealth(1.0) / this->CR();
+			//sum of credit and cash, if all collateral rates were set at the current edge's collateral rate
+			// so, sum all credit capacities plus cash if CR = 0
+			double max_extrapolate = this->nodeTo->maxExtrapolate(this->CR());
+			// getWealth(1.0) / this->CR();
 			double investment_level = this->nodeTo->credit_target + this->nodeTo->asset_target;
-			double max_payment = this->nodeTo->maxCredit(1.0) + this->nodeTo->getScrip();
+			double max_payment = this->nodeTo->maxCredit() + this->nodeTo->getScrip();
 			double result = 0;
 			// double target = min(investment_level,max_payment);
+			
+			// when taking the collateral requirement hurts an investment that is feasible
 			if (max_extrapolate < investment_level and investment_level < max_payment){
 				result = return_rate * (max_extrapolate - investment_level) / max_extrapolate;
 			}
+			// when an investment is infeasible
 			if (investment_level > max_payment){
-				result = return_rate * (max_extrapolate - investment_level) / max_extrapolate;
-			}			
+				result = return_rate * (max_extrapolate - max_payment) / max_extrapolate;
+			}
 
+
+			// cout<<"Collateral values check, credit"<<endl;
+			// cout<<"rr: "<<return_rate<<" ar: "<<areturns<<" cr: "<<creturns<<" extrapolated investment: "<<max_extrapolate<<" investment level "<<investment_level<<endl;
+			
 			// if (max_extrapolate < investment_level and investment_level < max_payment){
 				
 			// 	result = this->nodeTo->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
@@ -166,19 +254,51 @@ public:
 			// else {
 			// 	result = 0.0;
 			// }
+			if(result > 10){
+				// cout<<"error CV too high!"<<endl;
+				result = return_rate;
+			}
+			if(result < -10){
+				result = -return_rate;
+			}
+			if(result > 0){
+				// cout<<"error: why positive sendval?"<<endl;
+				// cout<<result<<endl;
+			}
 			this->collateral_value = result;
 		}
 		else{
-			double hc = 1 + this->CR();
-			this->collateral_value = return_rate*(this->nodeTo->maxCredit(hc) - this->nodeTo->maxCredit(1.0));
+			double cr_bonus = this->CR();
+			this->collateral_value = return_rate*(this->nodeTo->maxCredit(cr_bonus,1.0) - this->nodeTo->maxCredit())/(this->nodeTo->maxCredit());
+			if(this->nodeTo->maxCredit()==0){
+				this->collateral_value = 0;
+			}
+			if(fabs(this->collateral_value) > 100){
+				cout<<"CV too high!"<<endl;
+				cout<<"return rate "<<return_rate<<" ar: "<<areturns<<" cr: "<<creturns<<" maxCredit hc "<<this->nodeTo->maxCredit(1.0,cr_bonus)<<" maxcredit "<<this->nodeTo->maxCredit()<<endl;
+			}		
+		}
+		if(this->nodeTo->isMarket){
+			this->collateral_value = 0.0;
+		}
+		if (this->isDebt and this->nodeFrom->defaulted){
+			this->collateral_value = 0.0;
 		}
 		// debt, positive receiving
+		if(this->collateral_value > 10){
+			this->collateral_value = return_rate;
+		}
+		if(this->collateral_value < -10){
+			this->collateral_value = -return_rate;
+		}
 	}
 
-	double CR();
+	// void printCollateralValues(){
 
-
+	// }
 };
+
+
 
 
 class SingleCreditEdge{
@@ -189,7 +309,7 @@ public:
 	double credit_interest_rate;
 	double collateralRate;
 	int maturity;
-	bool active;
+	// bool active = true;
 
 	AtomicEdge* credit_remain;
 	unordered_map<double, AtomicEdge*> debt_current;
@@ -200,7 +320,7 @@ public:
 		this->credit_max = s.credit_max;
 		this->credit_interest_rate = s.credit_interest_rate;
 		this->collateralRate = s.collateralRate;
-		this->active = s.active;
+		// this->active = s.active;
 		// this->maturity = s.maturity;
 		this->credit_remain = new AtomicEdge(*(s.credit_remain), e, single, atomicMap, nodeFromT, nodeToT);
 		for (auto it : s.debt_current){
@@ -213,7 +333,7 @@ public:
 	SingleCreditEdge(double c_max, double ir, int& globalId, Edge* e, 
 		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT,double cr)
 		// ,bool active)
-		: credit_max(c_max), credit_interest_rate(ir),collateralRate(cr),active(active){
+		: credit_max(c_max), credit_interest_rate(ir),collateralRate(cr){
 // update atomic edge initiator to include maturity, even for credit edges. may not need maturity for singlecreditedges
 			credit_remain = new AtomicEdge(false, 
 				globalId++, c_max, ir, e, single, atomicMap, nodeFromT, nodeToT);
@@ -228,13 +348,13 @@ public:
 	// } 
 
 
-	void deactivate(){
-		this->active = false;
-	}
+	// void deactivate(){
+	// 	this->active = false;
+	// }
 
-	void activate(){
-		this->active = true;
-	}	
+	// void activate(){
+	// 	this->active = true;
+	// }	
 
 	void zero(){
 		credit_max = 0;
@@ -264,15 +384,18 @@ public:
 
 	bool routeCredit(double current, double interest_rate, int& globalId, Edge* e, 
 		int single, unordered_map<int, AtomicEdge*>& atomicMap, Node* nodeFromT, Node* nodeToT){
-		if (not this->active){
-			cout<<"tried to route on inactive credit line"<<endl;
-			return false;
+		// if (not this->active){
+		// 	cout<<"tried to route on inactive credit line"<<endl;
+		// 	return false;
+		// }
+		if (interest_rate > 0){
+			// cout<<"node "<<this->credit_remain->nodeTo->nodeId<<" route credit: "<<current<<" at IR "<<interest_rate<<endl;			
 		}
-		// cout<<"route credit: "<<current<<"at IR "<<interest_rate<<endl;
+		// this->print();
 		if (round(credit_remain->capacity*precision)/precision < round(precision*current)/precision){
-			cout<<"invalid credit capacity"<<endl;
-			cout<<"capacity is "<< credit_remain->capacity << " amount is "<< current<<endl;
-
+			cout<<"error: invalid credit capacity"<<endl;
+			cout<<"IR is "<<interest_rate<<"capacity is "<< credit_remain->capacity << " amount is "<< current<<endl;
+			this->print();
 			return false;
 		}
 
@@ -286,8 +409,10 @@ public:
 				globalId++, current, interest_rate, e, single, atomicMap, nodeFromT, nodeToT);
 
 		}
-
-		credit_remain->capacity -= current;
+		// cout<<"credit avail: "<<credit_remain->capacity<<endl;
+		// credit_remain->capacity -= current;
+		// cout<<"credit remaining: "<<credit_remain->capacity<<endl;
+		// cout<<"used up: "<<current<<endl;
 		return true;
 	}
 
@@ -295,19 +420,24 @@ public:
 		// cout<<"route debt: "<<current<<"at IR "<<interest_rate<<endl;
 
 		if (debt_current.find(interest_rate) == debt_current.end()) {
-			cout<<"invalid IR"<<endl;
+			cout<<"error: invalid IR"<<endl;
 			return false;
 		}
 		if (round(precision*debt_current.find(interest_rate)->second->capacity)/precision < round(precision*current)/precision){
-			cout<<"invalid debt capacity"<<endl;
-			cout<<"capacity is "<< debt_current.find(interest_rate)->second->capacity << " amount is "<< current<<endl;
+			cout<<"error: invalid debt capacity"<<endl;
+			cout<<"IR is "<<interest_rate<<" capacity is "<< debt_current.find(interest_rate)->second->capacity << " amount is "<< current<<endl;
+			this->print();			
 			return false;
 		}
 
-		debt_current.find(interest_rate)->second->capacity -= current;
-		if (this->active){			
-			credit_remain->capacity = min(current + credit_remain->capacity,credit_max);
-		}
+		// if (this->active){			
+		// }
+		// cout<<"debt avail: "<<debt_current.find(interest_rate)->second->capacity<<endl;
+		debt_current.find(interest_rate)->second->capacity -= current;		
+		credit_remain->capacity = min(current + credit_remain->capacity,credit_max);
+		// cout<<"debt remaining: "<<debt_current.find(interest_rate)->second->capacity<<endl;
+		// cout<<"used up: "<<current<<endl;
+
 		return true;
 	}
 

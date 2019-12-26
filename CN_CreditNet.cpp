@@ -34,7 +34,6 @@ double phi(double x)
     // A&S formula 7.1.26
     double t = 1.0/(1.0 + p*x);
     double y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
-
     return 0.5*(1.0 + sign*y);
 }
 
@@ -48,24 +47,37 @@ double uniform_cdf(double x, double T){
 	return (x + T) / (2.0 * T);
 }
 
-CreditNet::CreditNet(int finNumT, double precision, 
+CreditNet::CreditNet(double dVol, int finNumT, double precision, 
 	int marketId, double initR,double initVol, 
-	double deposit_rate, double haircut, double mReserve,
-	int valueBins, bool verb) : Graph(finNumT, marketId){
+	double deposit_rate, double deposit, double haircut, double mReserve, double mLimit,
+	int valueBins, double EAR, double asset_vol, int defaulted_periods, double explore_boost, bool verb) : Graph(finNumT, marketId){
 	this->precision = precision;
 	this->transactionCounter = 0;
 	this->marketId = marketId;
 	this->initVol = initVol;
 	this->initR = initR;
-	this->deposit_rate = deposit_rate;
+	this->deposit_rate = 0.0;
 	this->haircut = haircut;
 	// this->asset_maturity = maturity;
 	this->valueBins = valueBins;
 	this->verb = verb;
 	this->mReserve = mReserve;
+	this->expected_asset_return = EAR;
+	this->expected_deposits = deposit;
+	this->defaulted_periods = defaulted_periods;
+	this->explore_boost = explore_boost;
+	this->mLimit = mLimit;
+	this->asset_volatility = asset_vol;
 
+	this->log_mu = log(EAR*EAR/sqrt(EAR*EAR + asset_vol));
+	// parameter sigma
+	this->log_vol = sqrt(log(1+asset_vol/(EAR*EAR))); 	
+	this->debt_coc_total = 0.0;
+
+	this->dVol = dVol;
+	this->dRevert = deposit_rate;
 	// returns.assign(nodeNum, initR);
-	this->wealths.assign(nodeNum, 0.0);
+	// this->wealths.assign(nodeNum, 0.0);
 	// credits.assign(nodeNum, 0.0);
 	// credits_last.assign(nodeNum, 0.0);
 	rDefaults.assign(nodeNum, 0.0);
@@ -77,9 +89,32 @@ CreditNet::CreditNet(int finNumT, double precision,
 	default_wealth.assign(nodeNum, 0.0);
 	deposit_losses.assign(nodeNum, 0.0);
 	creditor_losses.assign(nodeNum, 0.0);
+	credit_utils.assign(nodeNum,0.0);
+	debt_coc.assign(nodeNum,0.0);
+	asset_coc.assign(nodeNum,0.0);
+	asset_amt.assign(nodeNum,0.0);
+	debt_amt.assign(nodeNum,0.0);
+	default_rates.assign(nodeNum, 0.0);
+	credit_requests.assign(nodeNum,0.0);
+	credit_premiums.assign(nodeNum,0.0);
+	credit_utils.assign(nodeNum,0.0);
+	debt_vol.assign(nodeNum,0.0);
+	cReturns_real.assign(nodeNum,0.0);
+	debt2_amt.assign(nodeNum,0.0);
+	ntrials = 0;
+
+	vector<int> initThis;
+	for (int j=0;j<nodeNum - 1;j++){
+		initThis.push_back(-1);
+	}
+
+	for (int i=0;i<nodeNum - 1;i++){		
+		active_set_statuses.push_back(initThis);
+	}
 	// credits_sq.assign(nodeNum, 0.0);
 
-	// cReturns.assign(nodeNum, 0.0);
+	cReturns.assign(nodeNum, 0.0);
+	c2Returns.assign(nodeNum,0.0);
 	// cReturns_sq.assign(nodeNum, 0.0);
 	// credits_cross.assign(nodeNum, 0.0);
 	// volatilities.assign(nodeNum, initVol);
@@ -90,37 +125,6 @@ CreditNet::CreditNet(int finNumT, double precision,
 
 CreditNet::CreditNet() : Graph(){}
 
-// vector<double> CreditNet::credit_shares(int ix){
-// 	vector<double> shares;
-// 	vector<double> out;	
-// 	double sum = 0;
-// 	for (int i = 0; i<returns.size(); i++){
-// 		if(not this->nodes[ix]->leveraged && i != ix && i != returns.size()-1 && not this->nodes[i]->defaulted){
-// 			// cout<<"wealth "<<wealths[i]<<" returns "<<returns[i]<<" vols "<<volatilities[i]<<endl;
-// 			double weight = max(0.0,wealths[i]*returns[i]/(sqrt(volatilities[i]))+0.00000000001);
-// 			// cout<<weight<<endl;
-// 			shares.push_back(weight);
-// 			sum += weight;
-// 		}
-// 		else{shares.push_back(0);}
-// 	}
-// 	// double sumOut = 0;
-// 	// for (int j = 0; j<returns.size();j++){
-// 	// 	double cand = shares[j]/sum;
-// 	// 	if(cand < 0.1){
-// 	// 		out.push_back(0);
-// 	// 	}
-// 	// 	else{
-// 	// 		out.push_back(cand);
-// 	// 		sumOut += cand;
-// 	// 	}
-
-// 	// }
-// 	for (int j = 0; j<returns.size();j++){
-// 		out.push_back(shares[j]/(0.0000000000001+sum));
-// 	}
-// 	return out;
-// }
 
 vector<int> rix(int l){
 	vector<int> v(l) ; // vector with 100 ints.
@@ -129,34 +133,69 @@ vector<int> rix(int l){
 	return v;
 }
 
-// double CreditNet::getReturn(int nodeNum, string mode){
-// 	if (mode == "current"){
-// 		return 0;		
-// 	}
-// }
 
-// double CreditNet::expected_credit_revenue(int nodeIx){
-// 	double result = 0;
-// 	for (auto& edge_it : this->nodes[nodeIx]->atomicEdge_in){
-// 		int tempix = edge_it.second->singleCreditIndex;
-// 		int toId = edge_it.second->nodeTo->nodeId;
-// 		if(edge_it.second->isDebt && edge_it.second->capacity>0 && not this->nodes[toId]->defaulted){
-// 			double rev_rate = edge_it.second->interest_rate*(1-this->default_rates[toId]) - (1-edge_it.second->originEdge->singleCreditEdges[tempix]->collateralRate)*this->default_rates[toId];
-// 			result += edge_it.second->capacity *rev_rate;
-// 		}
-	
-// 	}
-// }
+
+void CreditNet::record_values(){
+	this->all_values.clear();
+	for (auto &e : this->atomicEdges){
+		if(not e.second->nodeTo->isMarket and not e.second->nodeTo->defaulted and not e.second->nodeFrom->defaulted){
+			this->all_values.push_back(e.second->getSendValue(e.second->interest_rate));
+			this->all_values.push_back(e.second->getReceiveValue(e.second->interest_rate));
+		}
+	}
+}
+
+void CreditNet::print_values(){
+	for (auto &p : this->all_values){
+	}
+}
+
+void CreditNet::init_lambdas(){
+	for (int k = 0; k< nodeNum-1; k++){
+		this->nodes[k]->getLambda(expected_asset_return - 1,asset_volatility * asset_volatility, initR,initVol,mLimit,1.0);
+	}
+}
 
 void CreditNet::updateLambdas(){
-	double AR = this->expected_asset_return - asset_coc_all;
-	double AV = this->asset_volatility;
-	double CR = creturn_all - debt_coc_all;
-	double CV = creturn2_all - CR * CR;
+	double AR;
+	double CR;
+	double CV;
 
-	for (int k = 0; k< nodeNum; k++){
+	double all_AR = this->expected_asset_return -1 + asset_coc_all;
+	double AV = this->asset_volatility;
+	double all_CR = max(this->initR, creturn_all + debt_coc_all);
+	double all_CV = max(this->initVol,creturn2_all);
+
+	for (int k = 0; k< nodeNum-1; k++){
+		AR = this->expected_asset_return -1 + asset_coc[k] / asset_amt[k];
+		if (asset_amt[k] == 0){
+			AR = expected_asset_return -1;
+		}
+		AR = max(AR,0.0);
+		CR = cReturns[k]/debt_vol[k] + debt_coc_all;
+			// debt_coc[k]) / debt_vol[k];
+		if(debt_amt[k] == 0){
+			CR = 0.0;
+		}
+		CR = max(this->initR,CR);
+
+		CV = c2Returns[k] / debt2_amt[k];
+		if (debt_amt[k] == 0){
+			CV = initVol;
+		}
+		CV = max(this->initVol,CV);
 		// multiplier limit is the leverage limit as a multiplier on wealth
-		this->nodes[k]->getLambda(AR, AV*AV, CR, CV, FFR, multiplier_limit, 1.0);
+
+
+		if(this->nodes[k]->new_flag > 0){
+			AR = expected_asset_return - 1;
+			CR = max(initR,all_CR);
+			CV = max(all_CV,initVol);
+		}
+		this->nodes[k]->getLambda(AR, AV*AV, CR, CV, mLimit, 1.0);
+		if(verb and AR != this->expected_asset_return - 1){
+			cout<<"asset R: "<<AR<<" asset V: "<<AV<<" credit R: "<<CR<<" credit V: "<<CV<<endl;
+		}
 		if(verb){
 			cout<<"node "<< k << " theta "<<this->nodes[k]->theta<<" portfolio size "<<this->nodes[k]->folio_volume<<" lambda "<<this->nodes[k]->lambda<<" assets "<<this->nodes[k]->w_assets<<" wealth "<<this->nodes[k]->getWealth(haircut)<<endl;
 			cout<<"want assets "<<this->nodes[k]->getWealth(haircut)*this->nodes[k]->lambda*this->nodes[k]->w_assets<<endl;
@@ -164,175 +203,84 @@ void CreditNet::updateLambdas(){
 	}
 }
 
+
+
+
 void CreditNet::update_default_rates(){
 	for (int j = 0; j<nodeNum - 1; j++){
 		this->default_rates[j] = this->defaultRate(j);
+		if(fabs(this->defaultRate(j)) > 1){
+			cout<<"WARNING HIGH DR"<<endl;
+		}
+		if(verb){
+			cout<<"nodenum: "<<j<<" default rate: "<<this->defaultRate(j)<<endl;			
+		}
+	}
+	for (auto &e : this->atomicEdges){
+		double DR = this->default_rates[e.second->nodeTo->nodeId];
+		e.second->updateDR(DR);
 	}
 }
 
 double CreditNet::defaultRate(int nodeIx){
-	double assetZero = (this->nodes[nodeIx]->getDebt() + 
-		this->nodes[nodeIx]->deposits - this->nodes[nodeIx]->getScrip() - this->nodes[i]->getCash())/
-			this->nodes[nodeIx]->sumAssets();
-	double insolventProb = 0.5 + 0.5 * phi((log(assetZero) - this->expected_asset_return) / (sqrt(2.0) * asset_volatility));
+	if(nodeIx == marketId or this->nodes[nodeIx]->getWealth(haircut) > this->nodes[nodeIx]->sumAssets() or this->nodes[nodeIx]->sumAssets()==0){
+		return 0.0;
+	}
+	double assetZero = 1.0 - this->nodes[nodeIx]->getWealth(haircut) / this->nodes[nodeIx]->sumAssets();
 
+	if(assetZero <= 0){
+		cout<<"node: "<<nodeIx<<" asset0: "<<assetZero<<" assets: "<<this->nodes[nodeIx]->sumAssets()<<" wealth: "<<this->nodes[nodeIx]->getWealth(haircut)<<endl;		
+	}
 
-
-	// 1.0 - phi((log(assetZero) - this->expected_asset_return) / asset_volatility);
-
-	
-	
-	// double cashZero = checkPay(fid, this->marketId, -1, "MAX_FLOW", transactionCounter++, "CHECK_MAX",deposit_rate, deposit_rate, haircut);
-
-	// double depositDefaultProb = uniform_cdf(-cashZero,deposit_shock);
-
-	// return insolventProb + (1.0-insolventProb) * depositDefaultProb;
+	double insolventProb = phi((log(assetZero) - log_mu) / (sqrt(2.0) * log_vol));
 	return insolventProb;
-	// double defaultCount = 0.0;
-	// double dShock = ( (credNetConstants.uniformDoubleDistribution(
-	// 		credNetConstants.globalGenerator)) - 0.5) * 2.0* deposit_shock;
-
-	// for (auto &price : this->assetPrices){ //initialize assetPrices randomly
-	// 	if (this->nodes[nodeIx]->getWealth(price) < 0 or checkPay(fid, this->marketId, -dShock, "MAX_FLOW", transactionCounter++, "DEBT",deposit_rate, deposit_rate, haircut) < 0 ){
-	// 		defaultCount += 1;
-	// 	}
-	// }
-	// return defaultCount / this->assetPrices.size();
 }
 
 
 void CreditNet::updateCollateralValues(){
-	double AR = this->expected_asset_return - asset_coc_all;
-	double CR = creturn_all - debt_coc_all;
+	double AR = this->expected_asset_return - 1 + asset_coc_all;
+	double CR = creturn_all + debt_coc_all;
 	for (auto &edge : this->atomicEdges){
+		int k = edge.second->nodeTo->nodeId;
+		AR = this->expected_asset_return -1 + asset_coc[k] / asset_amt[k];
+		if (asset_amt[k] == 0){
+			AR = expected_asset_return -1;
+		}
+		AR = max(AR,0.0);
+		CR = cReturns[k]/debt_vol[k] + debt_coc_all;
+			// debt_coc[k]) / debt_vol[k];
+		if(debt_vol[k] == 0){
+			CR = 0.0;
+		}
+		CR = max(this->initR,CR);
+
 		edge.second->updateCollateralValue(CR,AR);
 	}
 }
 
 
-// double CreditNet::collateralValue(int nodeIx, double CR, double price, bool useCredit){
-// 	if (useCredit){
-// 		double max_extrapolate = this->nodes[nodeIx]->getWealth(price) / CR;
-// 		double investment_level = this->nodes[nodeIx]->credit_target + this->nodes[nodeIx]->asset_target;
-// 		double max_payment = this->nodes[nodeIx]->maxCredit(price) + this->nodes[nodeIx]->getScrip();
-// 		double result = 0;
-// 		if (max_extrapolate < investment_level and investment_level < max_payment){
-// 			result = this->nodes[nodeIx]->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
-// 		}
-// 		if (max_extrapolate > investment_level and investment_level > max_payment){
-// 			result = this->nodes[nodeIx]->assetReturn * (max_extrapolate - investment_level) / max_extrapolate;
-// 		}
-// 		return result;
-// 	}
-
-// 	return CR * this->nodes[nodeIx]->wealth_return;
-	
-
-
-
-	// double impactProportion = (credit_target + asset_target) / largestPayment;
-	
-	// double slack = 0;
-	// return this->nodes[nodeIx]->getReturn() * (leverage_constraint_ratio - (this->nodes[nodeIx]->assetDemand(price)
-	// 	+ this->nodes[nodeIx]->creditDemand(price))/
-	// 	this->nodes[nodeIx]->getWealth(price)) / leverage_constraint_ratio
-// }
-
-
-// vector<double> CreditNet::calcValueBin(vector<double> values, valueBins, valueType){
-// 	vector<double> sorted_indices = sort_indexes(values);
-// 	int ix = 0;
-// 	vector<double> value_bins;
-// 	for (auto &value_ix : sorted_indices){
-// 		if ix % this->binNum[valueType] == 0{
-// 			value_bins.push_back(values[value_ix]);
-// 		}
-// 		ix += 1;
-// 	}
-// 	ix = 0;
-// 	int bin = 0;
-// 	unordered_map <double,double> valueToMean;
-//     for (auto &value_ix : sorted_indices){
-//     	if (ix % this->binNum[valueType] == 0){
-//     		bin += 1;
-//     	}
-//     	this->valueToMean[value_ix] = value_bins[bin]/2 + value_bins[bin - 1]/2;
-//     	ix += 1;
-//     }
-// 	return valueToMean;
-// }
-
-// void CreditNet::updateValueMap(){
-// 	this->collateral_valueToMean = this->calcValueBin(this->collateral_values, "collateral");
-// 	this->interest_valueToMean = this->calcValueBin(this->interest_values, "interest");
-// 	this->default_valueToMean = this->calcValueBin(this->default_values, "default");
-// }
-
-
-
-
-// double CreditNet::checkPay(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double crate, double drate, double haircut){
-// 	this->updateNodeDegrees();
-// 	if (mode == "SRC_DECIDE"){
-// 		mode = this->nodes[fid1]->routePreference;
-// 	}
-
-// 	// this->print();
-
-// 	// fid1 = 2; fid2 = 0;
-// 	// cout << "from " << fid1 << ", to " << fid2 << " " << request << " " << mode;
-
-// 	CplexConverter converter;
-// 	converter.constructCplex(this, this->nodes[fid1], this->nodes[fid2], amt, transSeqNum, verb);
-// 	transactionCounter += 1;
-// 	// converter.printInput();
-	
-// 	LpSolver lpSolver;
-
-// 	this->nodes[fid1]->srcNum++;
-// 	this->nodes[fid2]->destNum++;
-// 	double res = lpSolver.solveLpProblem(converter, mode, purpose, crate, deposit_rate, haircut);
-// 	if (purpose == "CHECK_MAX"){
-// 		return converter.getRouted();
-// 	}
-// 	if (res){
-// 		// this->nodes[fid1]->transactionNum++;
-// 		// this->nodes[fid1]->successSrc++;
-// 		// this->nodes[fid2]->successDest++;
-// 		// cout << " success " << endl;
-// 		return 0;
-// 	}
-// 	// cout << " fail " << endl;
-// 	return -1;
-// }
-
-// void CreditNet::updateDefaults(){
-// 	if (this->assetPrices.size() == 0){
-// 		double rr = (credNetConstants.normalDistribution(
-// 							credNetConstants.globalGenerator)*asset_vol*sqrt((double)(maturity - 1)));
-// 		double alpha =  exp((EAR - asset_vol*asset_vol/2.0)*(double)(maturity - 1)+rr);
-// 	}
-// }
-
 void CreditNet::updateLineRequests(){
-	for (int i = 0; i < nodeNum; i++){
+	for (int i = 0; i < nodeNum-1; i++){
 		if (not this->nodes[i]->defaulted){
-			double target = this->nodes[i]->asset_target + this->nodes[i]->credit_target
-			+ this->nodes[i]->getDebt(); // plus whatever for liquidity risk buffer
-			double payable = this->nodes[i]->getScrip() + this->sumAssets() * EAR;
-			credit_requests[i] = max(0.0,target - payable);
+			double mult = min(mLimit,this->nodes[i]->lambda);
+			double target = mult * this->nodes[i]->getWealth(haircut) + this->nodes[i]->reserveT;
+			double payable = this->nodes[i]->getScrip() + this->nodes[i]->sumAssets() * expected_asset_return;
+			this->credit_requests[i] = max(0.0,target - payable);
+			if(verb){
+				cout<<"node "<<i<<" requests "<<this->credit_requests[i]<<endl;
+			}
 		}
 	}
 }
 
 void CreditNet::updateCreditUtil(){
-	for (int i = 0; i<nodeNum; i++){
+	for (int i = 0; i<nodeNum-1; i++){
 		credit_utils[i] = 0.0;
-		if (not this->nodes[i]-defaulted){
+		if (not this->nodes[i]->defaulted){
 			double issued = 0.0;
 			double used = 0.0;
 			for (auto &eOut : this->nodes[i]->edge_out){
-				if (not eOut->nodeTo->isMarket){
+				if (not eOut.second->nodeTo->isMarket){
 					for(auto &it: eOut.second->singleCreditEdges){
 						issued += it->credit_max;
 						for(auto &d: it->debt_current){
@@ -342,293 +290,140 @@ void CreditNet::updateCreditUtil(){
 				}
 			}
 			credit_utils[i] = used / issued;
+			if (issued == 0){
+				credit_utils[i] = 0.0;
+			}
 		}
 
 	}
 }
 
-void CreditNet::updateCreditPremiums(){
+void CreditNet::updateCreditPremiums(double thresh, double uprate, double downrate){
 	updateCreditUtil();
-	for (int i=0;i<nodeNum; i++){
-		if (credit_utils[i] >0.9){
-			credit_premiums *= 1.05;
+	for (int i=0;i<nodeNum-1; i++){
+		// updateNodePremium(thresh, uprate,downrate,credit_utils[i]);
+
+		if (credit_utils[i] > thresh){
+			this->nodes[i]->credit_premium *= uprate;
 		}
 		else{
-			credit_premiums *= 0.8;
+			this->nodes[i]->credit_premium *= downrate;
 		}
 	}
 }
 
 // which nodes are in active set? can call while recording debt utilization
-void CreditNet::updateCreditSets(){
-	for (auto &e : this->atomicEdges){
-		double UR = e->singleCreditEdges[0]->getUtil();
-		// need node active status, not edge status
-		int status = e->singleCreditEdges[0]->active;
-		if (status){
-			if (UR < 0.25 and status > 2){
+void CreditNet::updateCreditSets(double thresh, int inactive_periods){
+	// each credit edge has a utilization, which should be used to update the nxn matrix of active statuses
+	// active statuses are a n-vector for each node
+	
 
-			}
+	// double thresh = 0.25;
+	// int inactive_periods = 2;
+
+	for (auto &e : this->atomicEdges){
+		if(e.second->nodeTo->isMarket){
+			continue;
+		}
+		double UR = e.second->originEdge->singleCreditEdges[e.second->singleCreditIndex]->getUtil();
+		int creditor = e.second->nodeFrom->nodeId;
+		int borrower = e.second->nodeTo->nodeId;
+		if (e.second->isDebt){
+			continue;
+		}
+		// need node active status, not edge status
+		if (active_set_statuses[creditor][borrower] == inactive_periods and UR < thresh){
+			active_set_statuses[creditor][borrower] == -1;			
+		}
+		// if (active_set_statuses[creditor][borrower] == inactive_periods and UR >= thresh){
+		// 	active_set_statuses[creditor][borrower] == 0;			
+		// }
+		if (active_set_statuses[creditor][borrower] < inactive_periods 
+			and active_set_statuses[creditor][borrower] >= 0 
+			and UR < thresh){
+			active_set_statuses[creditor][borrower] += 1;			
+		}
+		// if (active_set_statuses[creditor][borrower] < inactive_periods 
+		// 	and active_set_statuses[creditor][borrower] >= 0 
+		// 	and UR >= thresh){
+		// 	active_set_statuses[creditor][borrower] = 0;
+		// }
+		// if (active_set_statuses[creditor][borrower] == -1
+		// 	and UR >= thresh){
+		// 	active_set_statuses[creditor][borrower] = 0;			
+		// }
+		if(UR >= thresh){
+			active_set_statuses[creditor][borrower] = 0;			
 		}
 	}
 }
 
 // cycle through requested lines and update capacities
 void CreditNet::updateCreditLimits(){
-	for (auto &e : this->atomicEdges){
-		double UR = e->singleCreditEdges[0]->getUtil();
-		bool status = e->singleCreditEdges[0]->active;
-
-	}
-}
-
-// what is this?
-void CreditNet::updateLines(){
-
-}
-
-
-int CreditNet::makeInvest(bool forced, bool verbose){
-
-	int leverages = 0;
-	vector<int> randix  = rix(	nodeNum );
-
-	for (int kk = 0; kk< nodeNum; kk++){
-		int k = randix[kk];
-		this->wealths[k] = this->nodes[k]->getWealth(haircut);
-		double violate_lev = checkCollateral(k);
-		leverages += violate_lev;
-		cDefaults[k] += violate_lev;
-		// cout<<"leveraged? "<<overleveraged<<endl;
-		// if(this->nodes[j]->defaulted){
-		// 	cout<<j<<" already defaulted"<<endl;
-		// 	continue;
-		// }
-
-// forced defaults
-		// if(forced && not this->nodes[k]->defaulted && this->fDefault > 0){
-		// 	this->nodes[k]->makeDefault();
-		// 	if(this->verb){
-		// 		cout<<"made "<<k<<" default "<<endl;				
-		// 	}
-		// 	this->fDefault -= 1;
-		// 	fDefaults[k] += 1;
-		// }
-
-
-		if (k != marketId && not this->nodes[k]->defaulted){
-			// cout<<j <<" not defaulted "<<this->nodes[j]->defaulted<<endl;
-			// double w = wealths[j];
-		
-			//update debt payouts
-			this->deactivateReserves(k);
-			double asset_target = this->nodes[k]->folio_volume * this->nodes[k]->w_assets;
-			// if(overleveraged == 0){
-			double fail;
-			double debt_cost;
-			double asset_cost;
-			std::tie(fail,debt_cost,asset_cost) = payAsset(k, this->marketId, asset_target, "MAX_FLOW", transactionCounter++, "ASSET",deposit_rate,haircut);
-			if(verb){
-				cout<<"paid assets "<<fail<<endl;
-			}
-			// this->nodes[i]->assets.push_back(std::make_pair(maturity,iAmount));
-
-			if(fail > 0){
-				this->nodes[k]->buyAssets(fail);
-				// cout<<"asset shortage "<<asset_target - fail<<endl;
-				// cout<<"got assets "<<failedil<<endl;
-			}
-			else{
-				this->nodes[k]->buyAssets(asset_target);
-				// cout<<"got assets "<<this->nodes[j]->lambda*this->nodes[j]->w_assets*w<<endl;				
-			}
-			debt_coc.push_back(debt_cost);
-			asset_coc.push_back(asset_cost);
-		}	
-	}
-
-	update_default_rates();
-	updateReturns();
-	updateLambdas();
-
-
-	return leverages;
-
-
-
-	// for(int i=0;i<returns.size() ; i++){
-	// 	cout<<returns[i]<<endl;
-	// // }
-
-	// credits_last=credits;
-
-	// record unmodified credit, reset actual credit
-	for(int cc = 0; cc<nodeNum; cc++){
-		if (not this->nodes[cc]->defaulted){
-			credits_last[cc] = credits[cc];
-			debt_coc_last[cc] = debt_coc[cc];
-			asset_coc_last
-			credits[cc] = 0.0;
-		}
-		if (this->nodes[cc]->defaulted && not this->nodes[cc]->been_defaulted){
-			credits_last[cc] += credits[cc];
-			cReturns[cc] += credits[cc];
-		}
-	}
-	// fill(credits.begin(), credits.end(), 0.0);
-	vector<int> randix  = rix(	nodeNum );
-	for (int kk = 0; kk< nodeNum; kk++){
-		int k = randix[kk];
-		wealths[k] = this->nodes[k]->getWealth(1.0);
-		leverages += checkCollateral(k);
-		cDefaults[k] += checkCollateral(k);
-		// cout<<"leveraged? "<<overleveraged<<endl;
-		// if(this->nodes[j]->defaulted){
-		// 	cout<<j<<" already defaulted"<<endl;
-		// 	continue;
-		// }
-		if(forced && not this->nodes[k]->defaulted && this->fDefault > 0){
-			this->nodes[k]->makeDefault();
-			if(this->verb){
-				cout<<"made "<<k<<" default "<<endl;				
-			}
-			this->fDefault -= 1;
-			fDefaults[k] += 1;
-		}
-		if (k != marketId && not this->nodes[k]->defaulted){
-			// cout<<j <<" not defaulted "<<this->nodes[j]->defaulted<<endl;
-			// double w = wealths[j];
-			int asset_maturity = maturity;
-		
-			//update debt payouts
-
-			double c_average = 0.0;
-			double cv_average = 0.0;
-			double wsum = 0.0;
-			double wsum2 = 0.0;
-			double rsize = returns.size()-2.0;
-			for (int ii = 0 ; ii < nodeNum; ii++){
-				if(ii!=marketId && ii!=k){
-					// c_average += (double)returns[ii]/rsize;
-					// cv_average += (double)volatilities[ii]/rsize;
-					double c_issue = credits_last[ii];
-					// this->nodes[ii]->getCredit() + this->nodes[ii]->getDebt();
-					c_average += (double)returns[ii]*c_issue/rsize;
-					cv_average += (double)volatilities[ii]*c_issue*c_issue/rsize;
-					wsum += credits_last[ii];
-					wsum2 += credits_last[ii]*credits_last[ii];
-				}
-			}
-
-			if(wsum == 0){
-				c_average = initR;
-				cv_average = initVol;
-			}
-			else{
-				c_average = c_average / (wsum);
-				cv_average = cv_average / (  wsum2);				
-			}
-
-
-			if(verb){
-				cout<<"aggregate creturns "<<c_average<<" aggregate cvol "<<cv_average<<endl;
-			}
-			
-			// accumulate( returns.begin(), returns.end(), 0.0)/returns.size();
-			// if(c_average>0.02){
-				// cout<<"credit returned "<<c_average<<endl;
-			// }			
-			 // = accumulate( volatilities.begin(), volatilities.end(), 0.0)/volatilities.size();
-			this->nodes[k]->getLambda(this->expected_asset_return, this->asset_volatility*this->asset_volatility, c_average, cv_average, FFR, 1.0/(deposit_rate+0.00000000000000001));
-			if(verb){
-				cout<<"node "<< k << " theta "<<this->nodes[k]->theta<<" portfolio size "<<this->nodes[k]->folio_volume<<" lambda "<<this->nodes[k]->lambda<<" assets "<<this->nodes[k]->w_assets<<" wealth "<<this->nodes[k]->getWealth(haircut)<<endl;
-				cout<<"want assets "<<this->nodes[k]->getWealth(haircut)*this->nodes[k]->lambda*this->nodes[k]->w_assets<<endl;
-			
-			}				
-			double asset_target = this->nodes[k]->folio_volume*this->nodes[k]->w_assets;
-			// if(overleveraged == 0){
-			double fail;
-			double debt_cost;
-			double asset_cost;
-			std::tie(fail,debt_cost,asset_cost) = payAsset(k, this->marketId, asset_target, "MAX_FLOW", transactionCounter++, "ASSET",0.0,deposit_rate,haircut);
-			if(verb){
-				cout<<"paid assets "<<fail<<endl;
-			}
-			// this->nodes[i]->assets.push_back(std::make_pair(maturity,iAmount));
-
-			if(fail > 0){
-				this->nodes[k]->buyAssets(fail,asset_maturity);
-				// cout<<"asset shortage "<<asset_target - fail<<endl;
-				// cout<<"got assets "<<failedil<<endl;
-			}
-			else{
-				this->nodes[k]->buyAssets(asset_target,asset_maturity);
-				// cout<<"got assets "<<this->nodes[j]->lambda*this->nodes[j]->w_assets*w<<endl;				
-			}
-			debt_coc.push_back(debt_cost);
-			asset_coc.push_back(asset_cost);
-		}	
-	}
-
-	for (int jjj = 0; jjj < nodeNum -1; jjj++){
-		// this->nodes[jjj]->print();
-		if(not this->nodes[jjj]->defaulted){
-			cReturns[jjj] = this->nodes[jjj]->getCredit();			
-		}
-	}
-	if(verbose){
-		this->resultsOut();
-	}
-
-	// for (int j = 0; j < nodeNum - 1; j++){
-	// 	if(not this->nodes[j]->defaulted){
-	// 		for(auto& it : this->nodes[j]->)
-	// 	}
-	// }
-
 	for (int j = 0; j < nodeNum - 1; j++){
 		if(not this->nodes[j]->defaulted){
 			for(auto& it : this->nodes[j]->atomicEdge_out){
 				int fromId = it.second->nodeFrom->nodeId;
 				if(it.second->isDebt && it.second->capacity>0 && not this->nodes[fromId]->defaulted){
-					unordered_map<int,pair<double,double>>::const_iterator got = this->nodes[j]->creditPayOut.find (fromId);
+					unordered_map<int,vector<double>>::const_iterator got = this->nodes[j]->creditPayOut.find (fromId);
 					int tempix = it.second->singleCreditIndex;
 					double tempCR = it.second->originEdge->singleCreditEdges[tempix]->collateralRate;
+					double amt = it.second->capacity;
 					if ( got == this->nodes[j]->creditPayOut.end() ){
-						this->nodes[j]->creditPayOut[fromId] = make_pair(tempCR,it.second->capacity*(1.0+it.second->interest_rate));
+						vector<double> new_elem;
+						new_elem.push_back(tempCR);
+						new_elem.push_back(amt*(1.0+it.second->interest_rate));
+						new_elem.push_back(amt);
+						this->nodes[j]->creditPayOut[fromId] = new_elem;
+						this->nodes[j]->debt_out += it.second->capacity;
+						this->nodes[fromId]->debt_in += it.second->capacity;					
 					}
 					else{
 						// cout<<"before "<<this->nodes[j]->creditPayOut[fromId].second<<endl;
-						this->nodes[j]->creditPayOut[fromId].second += it.second->capacity*(1.0+it.second->interest_rate);
+						this->nodes[j]->creditPayOut[fromId][1] += amt*(1.0+it.second->interest_rate);
+						this->nodes[j]->creditPayOut[fromId][2] += amt;
+						this->nodes[j]->debt_out += it.second->capacity;
+						this->nodes[fromId]->debt_in += it.second->capacity;
 						// cout<<"after "<<this->nodes[j]->creditPayOut[fromId].second<<endl;
 					}
-					// cout<<"cpayout "<<this->nodes[j]->creditPayOut[fromId].second<<" from "<<j<<" to "<<fromId<<endl;
 
+					if(verb){
+						cout<<"cpayout "<<this->nodes[j]->creditPayOut[fromId][1]<<" from "<<j<<" to "<<fromId<<endl;
+					}
+
+					//clear all debt after recording
 					it.second->route(it.second->capacity,it.second->interest_rate,this,this->transactionCounter++);
 				}
-
-			}			
-		}
-		if( this->nodes[j]->defaulted && not this->nodes[j]->been_defaulted){
-			for(auto& it : this->nodes[j]->atomicEdge_out){
-				int fromId = it.second->nodeFrom->nodeId;
-
-				if(it.second->isDebt && it.second->capacity>0){
-					cReturns[j] -= it.second->capacity;
-						// cout<<"after "<<this->nodes[j]->creditPayOut[fromId].second<<endl;
-				}
-					// cout<<"cpayout "<<this->nodes[j]->creditPayOut[fromId].second<<" from "<<j<<" to "<<fromId<<endl;
-
-				it.second->route(it.second->capacity,it.second->interest_rate,this,this->transactionCounter++);
 			}
-			this->nodes[j]->been_defaulted = true;
+		}
 
-		}					
+		// do i need been_defaulted logic to keep track of ressurrections?
+		// the below just keeps track of empirical returns for nodes the just defaulted
+
+		// if( this->nodes[j]->defaulted && not this->nodes[j]->been_defaulted){
+		// 	for(auto& it : this->nodes[j]->atomicEdge_out){
+		// 		int fromId = it.second->nodeFrom->nodeId;
+
+		// 		if(it.second->isDebt && it.second->capacity>0){
+		// 			cReturns[j] -= it.second->capacity;
+		// 				// cout<<"after "<<this->nodes[j]->creditPayOut[fromId].second<<endl;
+		// 		}
+		// 			// cout<<"cpayout "<<this->nodes[j]->creditPayOut[fromId].second<<" from "<<j<<" to "<<fromId<<endl;
+
+		// 		it.second->route(it.second->capacity,it.second->interest_rate,this,this->transactionCounter++);
+		// 	}
+		// 	this->nodes[j]->been_defaulted = true;
+
+		// }
 	}
 	
 
 	
-	
+	// need sum of active requests for each node's active set
+	// credit investment target
+	// record historic utilization on each credit line
+
+
 
 	for (int j = 0; j < nodeNum -1; j++){
 		// cout<<"leveraged? "<<overleveraged<<endl;
@@ -636,35 +431,91 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 		// 	cout<<j<<" already defaulted"<<endl;
 		// 	continue;
 		// }
-
 		if (j != marketId && not this->nodes[j]->defaulted ){
 			// cout<<j <<" not defaulted "<<this->nodes[j]->defaulted<<endl;&&not this->nodes[j]->leveraged
+			double active_request_sum = 0.0;			
+			vector<double> active_requests(this->nodeNum-1, 0.0);
+			vector<int> inactive_ix;
+
+			for (int k = 0; k < nodeNum - 1; k++){
+				if(k==j){
+					continue;
+				}
+				double crq = this->credit_requests[k];
+				if (active_set_statuses[j][k] >= 0){
+					active_requests[k] += crq;
+					active_request_sum += crq;
+				}
+				else{
+					inactive_ix.push_back(k);
+				}
+				if(verb){
+					cout<<"active status: "<<active_set_statuses[j][k]<<" from node "<<j<<" to node "<<k<<endl;					
+				}
+			}
 
 			// double w = wealths[j];
 			// int overleveraged = checkCollateral(j);
 
 			// }
 
-
-
-			vector<double> cShares = credit_shares(j);
 			// double ir = (credNetConstants.uniformIntDistribution(
 			// 	credNetConstants.globalGenerator) % numIR);
 			// cout<<"random: "<<ir<<endl;	
 				// this->addUnitEdge(nodes.find(i)->second, nodes.find(j)->second, ir, rand()%2);
-			for (int i = 0; i< nodeNum; i++){
-			// cout<<cShares[i]<<endl;
-				if(i!= j && i!= marketId){
+			
+			double inactive_budget = max(0.0,this->nodes[j]->credit_target - active_request_sum);
+			double active_budget = this->nodes[j]->credit_target - inactive_budget;
 
-					double cap = cShares[i] * this->nodes[j]->folio_volume*(1.0-this->nodes[j]->w_assets);
-					// if(cap<0){cout<<cap<< " is credit"<<endl;}
-					this->modifyCredit(j, i, max(0.0,cap));
+			if(verb){
+				cout<<"node "<<j<<"'s' inactive budget "<<inactive_budget<<" active budget "<<active_budget<<endl;				
+			}
+			vector<int> rand_ix = rix(nodeNum-1);
+			for (int i = 0; i< nodeNum - 1; i++){
+				int ii = rand_ix[i];
+			// cout<<cShares[i]<<endl;
+				if(ii!= j && ii!= marketId and j!= marketId and not this->nodes[ii]->defaulted){
+					double cap;					
+					if(active_set_statuses[j][ii] >=0){
+						// cShares[i] * this->nodes[j]->folio_volume*(1.0-this->nodes[j]->w_assets);
+						// if(cap<0){cout<<cap<< " is credit"<<endl;}
+						if (active_request_sum == 0.0){
+							cap = active_requests[ii];
+						}
+						else{
+							cap = active_requests[ii] * active_budget / (active_request_sum);
+						}
+						this->modifyCredit(j, ii, max(0.0,cap));
+						active_budget -= cap;
+					}
+					else{
+						// note that entire budget is not always spent
+						cap = this->explore_boost * max(0.0,this->credit_requests[ii]);
+						if(inactive_budget - cap > 0.0){
+							this->modifyCredit(j, ii, cap);
+							inactive_budget -= cap;					
+						}
+					}
 					// this->nodes[i]->print();
 					// credits_sq[i] += cap*cap;
 
 					// cout<<credits[i]<<endl;
 				}
-			}				
+			}
+
+			double extra_per_inactive = max(0.0,inactive_budget / (inactive_ix.size()) - 0.00000001);
+			double extra_per_active = max(0.0, active_budget / (nodeNum - 1.00000001 - inactive_ix.size()));
+
+			for(int i = 0;i<nodeNum - 1;i++){
+				double cap;
+				if(active_set_statuses[j][i] < 0 and inactive_budget > 0 and i!=j and not this->nodes[i]->defaulted){
+					this->addCredit(j,i,extra_per_inactive);
+					// cout<<"added "<<extra_per_inactive<<endl;
+				}
+				if(active_set_statuses[j][i] >= 0 and active_budget > 0 and i!=j and not this->nodes[i]->defaulted){
+					this->addCredit(j,i,extra_per_active);
+				}
+			}
 			
 			
 
@@ -683,19 +534,247 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 
 		}
 
+	}	
+}
+
+void CreditNet::updateCreditTerms(){
+	for (auto &e : this->atomicEdges){
+		if(e.second->isDebt or e.second->nodeFrom->isMarket or e.second->nodeTo->isMarket
+			or e.second->nodeTo->defaulted){
+			continue;
+		}
+		double DR = default_rates[e.second->nodeTo->nodeId];
+
+		if (DR > 0.70){
+			e.second->capacity = 0;
+			continue;
+		}
+		double CR = e.second->nodeFrom->CR_base;
+		double ir_set = min(0.8,(DR + e.second->nodeFrom->credit_premium - 
+			CR * DR) / ((1-DR)));
+		if(ir_set>=10 and verb){
+			cout<<"IR ERROR"<<endl;
+			cout<<"dr "<<DR<<" prem "<<e.second->nodeFrom->credit_premium<<endl;
+			cout<<"node: "<<e.second->nodeFrom->nodeId<<" wants IR to be: "<<ir_set<<" for node "<<e.second->nodeTo->nodeId<<endl;			
+		}
+		e.second->originEdge->singleCreditEdges[e.second->singleCreditIndex]->collateralRate = CR;
+		e.second->originEdge->singleCreditEdges[e.second->singleCreditIndex]->credit_interest_rate = ir_set;
+		e.second->interest_rate = ir_set;			 
+	}
+}
+
+
+int CreditNet::makeInvest(bool forced, bool verbose){
+
+	int leverages = 0;
+	vector<int> randix  = rix(	nodeNum );
+
+	for(int k = 0;k<nodeNum-1; k++){
+		if (this->nodes[k]->defaulted){
+			this->nodes[k]->default_counter += 1;
+			if (this->nodes[k]->default_counter == this->defaulted_periods){
+				this->restore_defaulted(k);
+				if(verb){
+					cout<<"restored node "<<k<<endl;
+					this->nodes[k]->printBalance();
+				}
+			}
+		}
+		if(this->nodes[k]->new_flag > 0){
+			this->nodes[k]->new_flag -= 1;
+		}
+		this->nodes[k]->creditPayOut.clear();
+	}
+	this->setReserves();
+
+	for(int k = 0; k < nodeNum-1;k++){
+
+		this->activateReserves(k);
+		this->deactivateReserves(k,1);		
 	}
 
-	for (int i = 0; i< nodeNum - 1; i++){
-		// cout<<"c is "<<credits[i]<<endl;
-		// cout<<"cl is "<<credits_last[i]<<endl;
-		// cout<<"sumcredit is "<<this->nodes[i]->getCredit()<<endl;
-		if(not this->nodes[i]->defaulted){
-			credits[i] += this->nodes[i]->getCredit();			
+	for (int kk = 0; kk< nodeNum; kk++){
+		int k = randix[kk];
+		if (not this->nodes[k]->defaulted and k != marketId){
+			// cout<<"wealth before: "<<this->nodes[k]->getWealth(haircut)<<endl;		
+			if(this->nodes[k]->debt_in != 0 or this->nodes[k]->debt_out != 0){
+				cout<<"debt record error"<<endl;
+				cout<<"debt_in: "<<	this->nodes[k]->debt_in<<" debt_out: "<<this->nodes[k]->debt_out<<endl;
+			}
+			double violate_lev = checkCollateral(k);
+			leverages += violate_lev;
+			cDefaults[k] += violate_lev;
+			// cout<<"leveraged? "<<violate_lev<<endl;
+			// if(this->nodes[j]->defaulted){
+			// 	cout<<j<<" already defaulted"<<endl;
+			// 	continue;
+			// }
+
+	// forced defaults
+			// if(forced && not this->nodes[k]->defaulted && this->fDefault > 0){
+			// 	this->nodes[k]->makeDefault();
+			// 	if(this->verb){
+			// 		cout<<"made "<<k<<" default "<<endl;				
+			// 	}
+			// 	this->fDefault -= 1;
+			// 	fDefaults[k] += 1;
+			// }
+				// cout<<j <<" not defaulted "<<this->nodes[j]->defaulted<<endl;
+				// double w = wealths[j];
+			
+			// cout<<"test"<<endl;
+			// cout<<"deactivated reserve amount "<<this->nodes[k]->mReserved<<" available cash "<<this->nodes[k]->getCash()<<endl;
+			// if(overleveraged == 0){
+			// this->activateReserves(k);
+			// this->deactivateReserves(k,1);	
+
+			double fail;
+			double debt_cost;
+			double asset_cost;
+
+			std::tie(fail,asset_cost,debt_cost) = payAsset(k, this->marketId, max(0.0,this->nodes[k]->asset_target), "MAX_FLOW_SRC", transactionCounter++, "ASSET",deposit_rate,haircut,0.0);
+			if(verb){
+				cout<<"paid assets "<<fail<<endl;
+			}
+			// this->nodes[i]->assets.push_back(std::make_pair(maturity,iAmount));
+
+			if(fail > 0){
+				this->nodes[k]->buyAssets(fail);
+				// cout<<"asset shortage "<<this->nodes[k]->asset_target - fail<<endl;
+				// cout<<"got assets "<<fail<<endl;
+				if (fail > this->nodes[k]->asset_target){
+					// cout<<"bought too many assets ERROR"<<endl;
+				}
+			}
+			if(fail == -1){
+				cout<<"CPLEX failure"<<endl;
+				// print();
+			}
+			if(fail == 0){
+				this->nodes[k]->buyAssets(this->nodes[k]->asset_target);
+				// cout<<"got assets successfully "<<this->nodes[k]->asset_target<<endl;				
+			}
+			//remember to clear
+			debt_coc[k] += debt_cost;
+			// debt_coc_total += debt_cost;
+
+			if(asset_cost< 0 and verb){
+				cout<<"cost recorded: "<<asset_cost<<endl;
+			}
+			asset_coc[k]+= asset_cost;
+			// activateReserves(k);		
+			//this->wealths[k] = this->nodes[k]->getWealth(haircut);
+			if(k != marketId){
+				// cout<<"wealth after: "<<this->nodes[k]->getWealth(haircut)<<endl;			
+			}
+			// deactivateReserves(k);					
 		}
 
-		// this->nodes[i]->print();
+
+
 	}
-	return leverages;	
+
+	for(int dd = 0; dd < nodeNum - 1; dd++){
+		this->nodes[dd]->debt_in = 0.0;
+		this->nodes[dd]->debt_out = 0.0;
+		if((not this->nodes[dd]->defaulted) and this->nodes[dd]->getWealth(haircut) <= 0.0){
+			if(verb){
+				cout<<dd<<"after asset negative wealth default "<<this->nodes[dd]->getWealth(haircut)<<endl;
+				this->nodes[dd]->printBalance();
+			}
+			this->makeDefault(dd);
+			// defaultC+=1;
+			aDefaults[dd] +=1;
+			double dlost = this->nodes[dd]->deposits - this->nodes[dd]->getCash() - (0.5*this->nodes[dd]->sumAssets());
+			liquid_loss[dd] += (0.5*this->nodes[dd]->sumAssets());
+			deposit_losses[dd] += max(0.0,dlost);
+			creditor_losses[dd] += min(this->nodes[dd]->getDebt()+dlost,this->nodes[dd]->getDebt());
+			// unwind(dd);
+
+
+		}	
+	}
+	// cout<<"finished asset purchases"<<endl;
+	update_default_rates();
+	// cout<<"got dr"<<endl;
+	updateReturns();
+	// cout<<"got returns"<<endl;
+	updateLambdas();
+	// cout<<"got lambdas"<<endl;
+
+
+
+
+	updateLineRequests();
+	// cout<<"got lines"<<endl;
+	updateCreditPremiums(0.8, 1.05, 0.8);
+	// cout<<"got prem"<<endl;
+	updateCreditSets(0.25, 2);
+	// cout<<"got csets"<<endl;
+	updateCreditLimits();
+	// cout<<"got climits"<<endl;
+	updateCreditTerms();
+	// cout<<"got terms"<<endl;
+	updateCollateralValues();
+
+	record_values();
+	credNetConstants.setValues(all_values,valueBins);
+
+	// cout<<"cleared hist"<<endl;	
+	// each credit edge has a utilization, which should be used to update the nxn matrix of active statuses
+	// active statuses are a n-vector for each node
+	
+	ntrials += 1;
+
+	return leverages;
+
+
+
+	// for(int i=0;i<returns.size() ; i++){
+	// 	cout<<returns[i]<<endl;
+	// // }
+
+	// credits_last=credits;
+
+	// record unmodified credit, reset actual credit
+	
+}
+
+void CreditNet::clear_history(){
+	std::fill(debt_coc.begin(), debt_coc.end(), 0.0);
+	std::fill(asset_coc.begin(), asset_coc.end(), 0.0);
+	std::fill(asset_amt.begin(), asset_amt.end(), 0.0);
+	std::fill(debt_amt.begin(), debt_amt.end(), 0.0);
+	std::fill(cReturns.begin(), cReturns.end(), 0.0);
+	std::fill(c2Returns.begin(), c2Returns.end(), 0.0);
+	std::fill(cReturns_real.begin(), cReturns_real.end(), 0.0);
+	std::fill(debt2_amt.begin(),debt2_amt.end(),0.0);
+	std::fill(debt_vol.begin(),debt_vol.end(),0.0);	
+	debt_coc_total = 0.0;
+}
+
+void CreditNet::restore_defaulted(int k){
+	this->nodes[k]->deposits = this->expected_deposits;
+	this->nodes[k]->defaulted = false;
+	this->nodes[k]->default_counter = 0;
+	for (auto &eIn: this->nodes[k]->atomicEdge_in){
+		if (1){
+			eIn.second->capacity = 0;
+		}
+	}
+
+	for (auto &eOut: this->nodes[k]->atomicEdge_out){
+		if (eOut.second->isDebt){
+			eOut.second->capacity = 0;
+		}
+		else if (not eOut.second->nodeTo->isMarket){
+			eOut.second->capacity = 0;			
+		}
+	}
+
+	grabCollateral(k,this->expected_deposits + this->init_wealth);
+	this->nodes[k]->new_flag= 2;
+	// cout<<"node restored"<<endl;
 }
 
 void CreditNet::resultsOut(){
@@ -714,12 +793,13 @@ void CreditNet::resultsOut(){
 		for (int j = 0; j < nodeNum - 1; j++){
 			cout<< adjrec[j] << " ";
 		}
-		cout<<ntrials<<" "<<this->nodes[i]->theta<< " "<<rDefaults[i]
+		cout<<this->nodes[i]->theta<< " "<<rDefaults[i]
 		<<" "<<aDefaults[i]<<" "<<dDefaults[i]<<" "<<cDefaults[i]<<" "<<this->nodes[i]->getWealth(haircut)
 		<<" "<<this->nodes[i]->getDebt()<<" "<<
 		this->nodes[i]->getCredit()<<" "<<
 		this->nodes[i]->getScrip() - this->nodes[i]->getCash()<<" "<<
-		this->nodes[i]->folio_volume*(1-this->nodes[i]->w_assets)<<" "<<this->nodes[i]->deposits<<" "<<this->nodes[i]->getCash()<< " "<<this->nodes[i]->sumAssets()<<endl;
+		this->nodes[i]->folio_volume*(1-this->nodes[i]->w_assets)<<" "<<this->nodes[i]->deposits<<" "<<
+		this->nodes[i]->getCash()<< " "<<this->nodes[i]->sumAssets()<<endl;
 	}
 }
 
@@ -728,17 +808,25 @@ void CreditNet::resultsOut(){
 void CreditNet::resultsOut_1(){
 	// cout<<"printing"<<endl;
 	for (int i = 0; i< nodeNum - 1; i++){
-		cout<<ntrials<<" "<<this->nodes[i]->theta<< " "<<rDefaults[i]
+		cout<<i<<" "<<ntrials<<" "<<this->nodes[i]->theta<< " "<<this->nodes[i]->CR_base<<" "<<rDefaults[i]
 		<<" "<<aDefaults[i]<<" "<<dDefaults[i]<<" "<<cDefaults[i]<<" "<<this->nodes[i]->getWealth(haircut)
-		<<" "<<this->nodes[i]->getDebt()<<" "<<
+		<<" "<<this->nodes[i]->debt_out<<" "<<
 		this->nodes[i]->getCredit()<<" "<<
 		this->nodes[i]->getScrip() - this->nodes[i]->getCash()<<" "<<
-		this->nodes[i]->folio_volume*(1-this->nodes[i]->w_assets)<<" "<<alternate<<" "<<fDefaults[i]<< " "<< this->nodes[i]->deposits<<" "<<this->nodes[i]->getCash()<< " "<<this->nodes[i]->sumAssets()<<
-		" "<<liquid_loss[i]<<" "<<default_wealth[i]<< " "<<deposit_losses[i]<<" "<<creditor_losses[i]<<endl;
+		this->nodes[i]->credit_target<< " "<< this->nodes[i]->deposits<<" "<<this->nodes[i]->getCash()<< " "<<this->nodes[i]->sumAssets()<<
+		" "<<this->nodes[i]->mReserved<<" "<<this->alpha<<" "<<liquid_loss[i]<<" "<<
+		default_wealth[i]<< " "<<deposit_losses[i]<<" "<<
+		this->default_rates[i]<<" "<<this->debt_coc_all<<" "<<this->asset_coc[i] / asset_amt[i]<<" "<<
+		this->cReturns[i] / debt_vol[i]<<" "<<this->cReturns_real[i] / debt_vol[i]<<" "<<
+		this->creditor_losses[i]<<this->expected_asset_return -1 + asset_coc[i] / asset_amt[i]<<" "<<
+		cReturns[i]/debt_vol[i] + debt_coc_all<<" "<<
+		c2Returns[i] / debt2_amt[i]<<" "<<this->default_rates[i]<<endl;
 	}
 }
 
+
 int CreditNet::shockPay(double alpha, bool crisis){
+	this->alpha = alpha;
 	// fill(cReturns.begin(), cReturns.end(), 0.0);
 	// cReturns[fid] = 0.0;	
 	// if(this->nodes[fid]->defaulted){
@@ -748,15 +836,22 @@ int CreditNet::shockPay(double alpha, bool crisis){
 	// cout<<fid <<" not defaulted shock "<<this->nodes[fid]->defaulted<<endl;
 	
 	//deposit shock
+	clear_history();
+
 	vector<int>randix  = rix(	nodeNum );
 
 	for (int fid1 = 0;fid1<nodeNum;fid1++){
 		int fid = randix[fid1];
 		if(fid!=marketId && not this->nodes[fid]->defaulted){
-			this->activateReserves(fid);
-			double dShock = ( (credNetConstants.uniformDoubleDistribution(
-								credNetConstants.globalGenerator)) - 0.5) * 2.0* this->nodes[fid]->deposits;
+			double dShock = (( (credNetConstants.uniformDoubleDistribution(
+								credNetConstants.globalGenerator)) - 0.5) * 2.0 ) * this->nodes[fid]->deposits;
+			
+			// double dNorm = (credNetConstants.normalDistribution(
+			// 						credNetConstants.globalGenerator))*dVol + log_mu;
+			
+
 			// cout<<"dShock is "<<dShock<<endl;
+			activateReserves(fid);
 			if(not crisis || (crisis && this->cCount <= 0)){
 				// double dShock = (credNetConstants.normalDistribution(
 				// 								credNetConstants.globalGenerator)) * deposit_shock * this->nodes[fid]->deposits;
@@ -775,61 +870,72 @@ int CreditNet::shockPay(double alpha, bool crisis){
 					grabCollateral(fid,dShock);
 				}
 				else{
-					double failedDeposit = payAsset(fid, this->marketId, -dShock, "MAX_FLOW", transactionCounter++, "DEBT",deposit_rate, deposit_rate, haircut);
-					// cout<<"pay deposit"<<endl;
-					if (failedDeposit > 0){
+					double failedDeposit;
+					double debt_cost;
+					double asset_cost;
+					if(verb){
+						cout<<"pay deposit"<<endl;						
+					}
+					std::tie(failedDeposit,asset_cost,debt_cost) = payAsset(fid, this->marketId, -dShock, "MAX_FLOW_SRC", transactionCounter++, "DEBT",deposit_rate,haircut,0.0);					
+					if (failedDeposit > 0.0 or failedDeposit == -1){
+						if(failedDeposit == -1){
+							failedDeposit = 0;
+						}
 						// cout<<"was defaulted "<< this->nodes[fid]->defaulted<<endl;
-							double status = makeLiquidate(fid,-dShock - failedDeposit);
-							liquid_loss[fid] += status;
+						double status = makeLiquidate(fid,-dShock - failedDeposit);
+						liquid_loss[fid] += status;
 
-							if(status >0){
-								if(verb){
-									cout<<fid << " couldn't pay " << -dShock - failedDeposit<< " is defaulted "<<this->nodes[fid]->defaulted<<endl;								
-								}
-								// this->nodes[fid]->makeDefault();
-								defaultC+=1;
-								dDefaults[fid] +=1;
-								double dlost = this->nodes[fid]->deposits - this->nodes[fid]->getCash() +(-dShock - failedDeposit) -status;
-								default_wealth[fid] += max(0.0,this->nodes[fid]->getWealth(1.0));
-								deposit_losses[fid] += max(0.0,dlost);
-								creditor_losses[fid] += min(this->nodes[fid]->getDebt()+dlost,this->nodes[fid]->getDebt());
+						if(status >0){
+							if(verb){
+								cout<<fid << " couldn't pay " << -dShock - failedDeposit<< " is defaulted "<<this->nodes[fid]->defaulted<<endl;								
+							}
+							// this->nodes[fid]->makeDefault();
+							// defaultC+=1;
+							dDefaults[fid] +=1;
+							double dlost = this->nodes[fid]->deposits - this->nodes[fid]->getCash() +(-dShock - failedDeposit) -status;
+							default_wealth[fid] += max(0.0,this->nodes[fid]->getWealth(1.0));
+							deposit_losses[fid] += max(0.0,dlost);
+							creditor_losses[fid] += min(this->nodes[fid]->getDebt()+dlost,this->nodes[fid]->getDebt());
 						}
 
 						
 					}
+					
+					// debt_coc_total += debt_cost;
+					debt_coc[fid] += debt_cost;
 				}				
 			}
-			if (crisis && this->cCount>0){
-				if(verb){
-					cout<<"crisis at "<<fid<<endl;
-				}
-				if(verb){
-					cout<<"node "<<fid<<" deposit shock "<<this->nodes[fid]->deposits<<" cash "<<this->nodes[fid]->getCash()<< " credit "<<this->nodes[fid]->getCredit()<<" assets "<< this->nodes[fid]->sumAssets()<<endl;
-				}				
-				this->cCount += -1;
-				fDefaults[fid] +=1;										
-				double failedDeposit = payAsset(fid, this->marketId, this->nodes[fid]->deposits, "MAX_FLOW", transactionCounter++, "DEBT",deposit_rate, deposit_rate, haircut);
-				if (failedDeposit > 0){
-					// cout<<"was defaulted "<< this->nodes[fid]->defaulted<<endl;
-					double status = makeLiquidate(fid,this->nodes[fid]->deposits - failedDeposit);
-					liquid_loss[fid] += status;
-					if(status >0){
-						if(verb){
-							cout<<fid << " couldn't pay " << this->nodes[fid]->deposits - failedDeposit<< " is defaulted "<<this->nodes[fid]->defaulted<<endl;								
-						}
-						// this->nodes[fid]->makeDefault();
-						defaultC+=1;
-						dDefaults[fid] +=1;	
-						double dlost = this->nodes[fid]->deposits - this->nodes[fid]->getCash() +(this->nodes[fid]->deposits - failedDeposit) -status;
-						default_wealth[fid] += max(0.0,this->nodes[fid]->getWealth(1.0));
-						deposit_losses[fid] += max(0.0,dlost);
-						creditor_losses[fid] += min(this->nodes[fid]->getDebt()+dlost,this->nodes[fid]->getDebt());											
+			// if (crisis && this->cCount>0){
+			// 	if(verb){
+			// 		cout<<"crisis at "<<fid<<endl;
+			// 	}
+			// 	if(verb){
+			// 		cout<<"node "<<fid<<" deposit shock "<<this->nodes[fid]->deposits<<" cash "<<this->nodes[fid]->getCash()<< " credit "<<this->nodes[fid]->getCredit()<<" assets "<< this->nodes[fid]->sumAssets()<<endl;
+			// 	}				
+			// 	this->cCount += -1;
+			// 	fDefaults[fid] +=1;										
+			// 	double failedDeposit = payAsset(fid, this->marketId, this->nodes[fid]->deposits, "MAX_FLOW", transactionCounter++, "DEBT",deposit_rate, deposit_rate, haircut);
+			// 	if (failedDeposit > 0){
+			// 		// cout<<"was defaulted "<< this->nodes[fid]->defaulted<<endl;
+			// 		double status = makeLiquidate(fid,this->nodes[fid]->deposits - failedDeposit);
+			// 		liquid_loss[fid] += status;
+			// 		if(status >0){
+			// 			if(verb){
+			// 				cout<<fid << " couldn't pay " << this->nodes[fid]->deposits - failedDeposit<< " is defaulted "<<this->nodes[fid]->defaulted<<endl;								
+			// 			}
+			// 			// this->nodes[fid]->makeDefault();
+			// 			defaultC+=1;
+			// 			dDefaults[fid] +=1;	
+			// 			double dlost = this->nodes[fid]->deposits - this->nodes[fid]->getCash() +(this->nodes[fid]->deposits - failedDeposit) -status;
+			// 			default_wealth[fid] += max(0.0,this->nodes[fid]->getWealth(1.0));
+			// 			deposit_losses[fid] += max(0.0,dlost);
+			// 			creditor_losses[fid] += min(this->nodes[fid]->getDebt()+dlost,this->nodes[fid]->getDebt());											
 
-					}
+			// 		}
 			
-				}
-				this->nodes[fid]->deposits = 0;				
-			}
+			// 	}
+			// 	this->nodes[fid]->deposits = 0;				
+			// }
 			this->deactivateReserves(fid);
 		}
 	}
@@ -840,29 +946,9 @@ int CreditNet::shockPay(double alpha, bool crisis){
 	int defaultC = 0;
 	for (int fid = 0;fid<nodeNum - 1;fid++){
 		if(fid!=marketId && not this->nodes[fid]->defaulted){
-			int aSize = this->nodes[fid]->assets.size();
-			for (int i = 0; i<this->nodes[fid]->assets.size();i++){
-
-				// cout<<"maturity is "<<this->nodes[fid]->assets[i].first<<" amount is "<<this->nodes[fid]->assets[i].second<<endl;			
-				// cout<<"index "<<i<<" size "<<aSize<<endl;
-				this->nodes[fid]->assets[i].first = this->nodes[fid]->assets[i].first - 1;
-				// cout<<"maturity is "<<this->nodes[fid]->assets[i].first<<" amount is "<<this->nodes[fid]->assets[i].second<<endl;
-				if ( this->nodes[fid]->assets[i].first == 0){
-					
-					// cout<<"alpha is "<<alpha<<endl;
-					grabCollateral(this->nodes[fid]->nodeId, this->nodes[fid]->assets[i].second*(alpha));
-					// cout<<"asset paid off "<<this->nodes[fid]->assets[i].second*(alpha)<<endl;
-				}
-			}
-			int jj = 0;
-			while(jj != this->nodes[fid]->assets.size()){
-				if (this->nodes[fid]->assets[jj].first == 0){
-					this->nodes[fid]->assets.erase(this->nodes[fid]->assets.begin() + jj);
-				}
-				else{jj++;}
-			}
+			grabCollateral(fid, this->nodes[fid]->assets*(alpha));
+			this->nodes[fid]->assets = 0;
 		}
-		this->deactivateReserves(fid);
 	}
 			// auto i = begin(this->nodes[fid]->assets);
 			// while( i != end(this->nodes[fid]->assets)){
@@ -886,44 +972,82 @@ int CreditNet::shockPay(double alpha, bool crisis){
 
 
 	// debt repayment
-	randix  = rix(	nodeNum );
+
+	randix = rix(nodeNum);
 
 	for (int f = 0;f<nodeNum ;f++){
 		int ff = randix[f];
 		if( ff != marketId && not this->nodes[ff]->defaulted){
 			this->activateReserves(ff);
 			for (auto& cPay : this->nodes[ff]->creditPayOut){
-				// cout<<"pay credit"<<endl;
-				double current_crate = cPay.second.first ;
-				// cout<<"c to pay "<<cPay.second.second<<" from "<<ff<<" to "<<cPay.first<<endl;
-				double paymentFail = payAsset(ff, cPay.first, cPay.second.second,"MAX_FLOW", transactionCounter++, "DEBT",current_crate, deposit_rate, haircut);
+				if(verb){
+					cout<<"pay credit"<<endl;
+					cout<<"c to pay "<<cPay.second[1]<<" from "<<ff<<" to "<<cPay.first<<endl;
+					cout<<"cash: "<<this->nodes[ff]->getCash()<<endl;					
+					this->nodes[ff]->printBalance();
+				}
+				double current_crate = cPay.second[0];
+				double paymentFail;
+				double debt_cost;
+				double asset_cost;
+				std::tie(paymentFail,asset_cost,debt_cost) = payAsset(ff, cPay.first, cPay.second[1], "MAX_FLOW_SRC", transactionCounter++, "DEBT",deposit_rate,haircut,current_crate);					
+
 				if(paymentFail > 0){
-					double status = makeLiquidate(ff,cPay.second.second - paymentFail);
-					if(status >0){
-						// this->nodes[fid]->makeDefault();
+					double left = cPay.second[1] - paymentFail;
+					double status = payCash(ff, left);
+					if(status > 0){
 						if(verb){
-							cout<<"node "<<ff<<" couldn't pay credit "<<cPay.second.second - paymentFail<<" defaulted"<<endl;	
-						}
-						cPay.second.second = 0;
-						defaultC+=1;
+							cout<<"node "<<ff<<" couldn't pay credit "<<cPay.second[1] - paymentFail<<" defaulted"<<endl;
+							this->nodes[ff]->printBalance();								
+						}						
+						makeDefault(ff);
+						default_wealth[ff] += max(0.0,this->nodes[ff]->getWealth(1.0));
+						// 
+						// double status = makeLiquidate(ff,cPay.second.second - paymentFail);
+						// if(status >0){
+						// 	// this->nodes[fid]->makeDefault();
+
+
+						// 	defaultC+=1;
 						rDefaults[ff] +=1;						
 
-						grabCollateral(cPay.first,status);
-						cReturns[ff] += status+paymentFail;											
+						// 	// grabCollateral(cPay.first,status);
+						cReturns_real[ff] += paymentFail;											
+						// }
+						// else{
+						// 	grabCollateral(cPay.first,cPay.second.second - paymentFail);
+						// }						
+						this->nodes[cPay.first]->debt_in -= cPay.second[2];
+						double status = payCash(cPay.first,paymentFail);
 					}
 					else{
-						grabCollateral(cPay.first,cPay.second.second - paymentFail);
-						cReturns[ff] += cPay.second.second;
-					}
+						grabCollateral(cPay.first,left);
+						cReturns_real[ff] += cPay.second[1];
+						this->nodes[ff]->debt_out -= cPay.second[2];
+						// -= cPay.second.second;
+						this->nodes[cPay.first]->debt_in -= cPay.second[2];
+						}
+
 				}
 				else{
-					cReturns[ff] += cPay.second.second;					
+					// grabCollateral(cPay.first,cPay.second[1]);
+					cReturns_real[ff] += cPay.second[1];	
+					this->nodes[ff]->debt_out -= cPay.second[2];
+					// -= cPay.second.second;
+					this->nodes[cPay.first]->debt_in -= cPay.second[2];
 				}
+				cPay.second.clear();
+
 				// cReturns_sq[fid] += cPay.second.second*cPay.second.second;
 				// credits_cross[fid] += cPay.second.second * this->cap;
-				cPay.second.second = 0;
-				// cout<<"cpaid total "<<cReturns[ff]<<endl;
+				if(not this->nodes[ff]->defaulted){
 
+				}
+
+				// -= cPay.second.second;					cPay.second.second = 0;					
+				// cout<<"cpaid total "<<cReturns[ff]<<endl;
+				// debt_coc_total += debt_cost;
+				debt_coc[ff] += debt_cost;				
 			}
 			// if(this->nodes[ff]->defaulted){
 			// 	this->nodes[ff]->been_defaulted += 1;
@@ -936,27 +1060,32 @@ int CreditNet::shockPay(double alpha, bool crisis){
 	}
 
 
+
 	// handle defaults
 	for(int dd = 0; dd < nodeNum - 1; dd++){
-		if(not this->nodes[dd]->defaulted && this->nodes[dd]->getWealth(haircut) < 0.0){
-			this->nodes[dd]->makeDefault();
-			defaultC+=1;
+		this->nodes[dd]->debt_in = 0.0;
+		this->nodes[dd]->debt_out = 0.0;		
+		if((not this->nodes[dd]->defaulted) and this->nodes[dd]->getWealth(haircut) <= 0.0){
+			if(verb){
+				cout<<dd<<" negative wealth default "<<this->nodes[dd]->getWealth(haircut)<<endl;
+				this->nodes[dd]->printBalance();										
+			}
+			this->makeDefault(dd);
+			// defaultC+=1;
 			aDefaults[dd] +=1;
 			double dlost = this->nodes[dd]->deposits - this->nodes[dd]->getCash() - (0.5*this->nodes[dd]->sumAssets());
 			liquid_loss[dd] += (0.5*this->nodes[dd]->sumAssets());
 			deposit_losses[dd] += max(0.0,dlost);
 			creditor_losses[dd] += min(this->nodes[dd]->getDebt()+dlost,this->nodes[dd]->getDebt());
 			// unwind(dd);
-			if(verb){
-				cout<<dd<<" negative wealth couldn't ... default "<<this->nodes[dd]->getWealth()<<endl;
-			}
+
 
 		}	
 	}
 
 
 	// modify investment targets to account for mReserve
-	postCashUpdateLambda();
+	this->postCashUpdateLambda();
 	setReserves();
 
 	if(verb){
@@ -966,14 +1095,101 @@ int CreditNet::shockPay(double alpha, bool crisis){
 	return defaultC;		
 }
 
+double CreditNet::payCash(int fid, double amt){
+	double leftover = amt;
+	for (auto&it : this->nodes[fid]->atomicEdge_in){
+		if(it.second->nodeTo->isMarket and it.second->isDebt){
+			double routable = max(0.0,min(it.second->capacity,leftover));	
+			it.second->route(routable,0.0,this,this->transactionCounter++);
+			leftover -= routable;
+		}
+		if (leftover<=0){
+			it.second->originEdge->singleCreditEdges[it.second->singleCreditIndex]->credit_remain->route(-leftover,0,this,this->transactionCounter++);
+			return 0;
+		}
+	}
+	return leftover;
+}
+
+
+void CreditNet::makeDefault(int fid){
+	if (verb){
+		cout<<"defaulted node: "<<fid<<" epoch "<<ntrials<<endl;	
+		cout<<"assets: "<<this->nodes[fid]->sumAssets()<<" shock "<<alpha<<endl;
+		cout<<"cash: "<<this->nodes[fid]->getCash()<<endl;
+		cout<<"debt: "<<this->nodes[fid]->getDebt()<<endl;
+		cout<<"IOUs: "<<this->nodes[fid]->getScrip() - this->nodes[fid]->getCash()<<endl;
+		cout<<"deposits: "<<this->nodes[fid]->deposits<<endl;
+		cout<<"unpaid debt out: "<<this->nodes[fid]->debt_out<<endl;
+		cout<<"unpaid debt in: "<<this->nodes[fid]->debt_in<<endl;		
+	}
+	// this->nodes[fid]->print();
+	this->nodes[fid]->defaulted = true;
+	this->nodes[fid]->reserveT = 0.0;
+	this->nodes[fid]->debt_reserve = 0.0;
+	this->nodes[fid]->mReserved = 0.0;
+	for (auto &eIn : this->nodes[fid]->atomicEdge_in){
+		if(eIn.second->isDebt){
+			// cout<<"pay defaulted node"<<endl;
+			double owed = eIn.second->capacity;
+			if(owed == 0){
+				continue;
+			}
+			double cr_owed = eIn.second->CR();
+			double paymentFail;
+			double debt_cost;
+			double asset_cost;
+
+			std::tie(paymentFail,asset_cost,debt_cost) = payAsset(eIn.second->nodeFrom->nodeId, this->marketId, owed, "MAX_FLOW_SRC", transactionCounter++, "DEBT",deposit_rate,haircut,cr_owed);			
+			if(paymentFail > 0){
+				double left = payCash(eIn.second->nodeFrom->nodeId,owed-paymentFail);
+				if (left > 0.5 * eIn.second->nodeFrom->assets){
+					makeDefault(eIn.second->nodeFrom->nodeId);
+					if(verb){
+						// cout<<"node "<<fid<<" couldn't pay credit "<<owed - paymentFail<<" defaulted"<<endl;	
+					}
+					// defaultC+=1;
+					rDefaults[fid] +=1;				
+				}
+				else{
+					eIn.second->nodeFrom->assets -= 2 * (owed-paymentFail);
+				}
+				
+				
+
+					// grabCollateral(cPay.first,status);
+				
+				// else{
+				// 	grabCollateral(cPay.first,cPay.second.second - paymentFail);
+				// }
+			}
+			debt_coc[fid] += debt_cost;
+		}
+		eIn.second->capacity = 0.0;
+
+	}
+	this->nodes[fid]->debt_in = 0.0;
+	this->nodes[fid]->debt_out = 0.0;
+
+	for(auto &eOut : this->nodes[fid]->atomicEdge_out){
+		if(eOut.second->isDebt){
+			double owe = eOut.second->capacity * eOut.second->CR();
+			grabCollateral(eOut.second->nodeFrom->nodeId,owe);
+			this->cReturns_real[eOut.second->nodeFrom->nodeId] += owe;
+		}
+		if(not eOut.second->nodeTo->isMarket){
+			eOut.second->capacity = 0.0;			
+		}
+	}
+}
 
 void CreditNet::setReserves(){
-	for (int k = 0; k< nodeNum - 1; k++){
-		if(this->nodes[k]->defaulted){
-			continue;
-		}
-		this->nodes[k]->reserveT = this->nodes[k]->deposits * mReserve;
+for (int k = 0; k< nodeNum - 1; k++){
+	if(this->nodes[k]->defaulted){
+		continue;
 	}
+	this->nodes[k]->reserveT = min(this->nodes[k]->deposits * mReserve,this->nodes[k]->getCash());
+}
 }
 
 
@@ -987,46 +1203,72 @@ void CreditNet::postCashUpdateLambda(){
 }
 
 void CreditNet::updateReturns(){
-	if(ntrials <3){
-		// for(int i = 0; i<nodeNum;i++){
-		// 	if(not this->nodes[i]->defaulted){
-		// 		returns[i] = this->initR;
-		// 		volatilities[i] = initVol;				
-		// 	}
-		// }
+	if(ntrials <2){
+		for(int i = 0; i<nodeNum -1;i++){
+			if(not this->nodes[i]->defaulted){
+				cReturns[i] = this->initR;
+				c2Returns[i] = this->initVol;
+				debt_amt[i] = 1.0;
+				debt2_amt[i] = 1.0;
+				asset_amt[i] = 1.0;
+				asset_coc[i] = 0.0;
+				debt_coc[i] = 0.0;
+				debt_vol[i] = 0.0;
+			}
+		}
 		asset_coc_all = 0.0;
 		debt_coc_all = 0.0;
 		creturn_all = initR;
 		creturn2_all = initVol;
 	}
 	else{
-		double total_asset_coc = 0;
-		double total_debt_coc = 0;
-		double total_debt_value = 0;
-		double total_debt_vol = 0;
+		double total_asset_coc = 0.0;
+		double total_debt_coc = 0.0;
+		double total_debt_value = 0.0;
+		// amount of debt, so we can assign cash reserved for debt
+		double total_debt_vol = 0.0;
+		double total_debt2 = 0.0;
 
-		total_debt = 0;
-		total_assets = 0;
-		asset_coc_all = 0;
-		debt_coc_all = 0;
-		creturn_all = 0;
-		creturn2_all = 0;
+		// total cash assigned to funding debt
+		total_debt = 0.0;
+		// total_debt2 = 0.0;
+		total_assets = 0.0;
+		asset_coc_all = 0.0;
+		debt_coc_all = 0.0;
+		creturn_all = 0.0;
+		creturn2_all = 0.0;
 
 		for (int i = 0; i< nodeNum -1; i++){
+			if(this->nodes[i]->defaulted){
+				asset_amt[i] = 0;
+				debt_amt[i] = 0;
+				cReturns[i] = 0;
+				c2Returns[i] = 0;
+				debt_vol[i] = 0;
+				continue;
+			}
 			asset_amt[i] = this->nodes[i]->sumAssets();
 			asset_coc_all += asset_coc[i];
-			total_assets += asset_amt;
+			total_assets += asset_amt[i];
 			
-			debt_amt[i] = this->nodes[i]->getScrip();
+			debt_amt[i] = this->nodes[i]->getScrip() - this->nodes[i]->getCash();
+			debt2_amt[i] = this->nodes[i]->scrip2Sum();
+			total_debt2 += debt2_amt[i];
+
 			debt_coc_all += debt_coc[i];
 			total_debt += debt_amt[i];
+			debt_vol[i] = max(this->nodes[i]->debt_reserve,this->nodes[i]->getDebtCaps());
+			total_debt_vol += debt_vol[i];
 
-			double creturn = this->nodes[i]->creditReturn(this->default_rates[i]);
-			double c2return = this->nodes[i]->credit2Return(this->default_rates[i]);
-			creturn_all += creturn;
-			creturn2_all += c2return;
-			cReturns[i] - creturn / debt_amt[i];
-			c2Returns[i] = c2return / debt_amt[i];
+			cReturns[i] = this->nodes[i]->creditReturn(this->default_rates[i]);
+			c2Returns[i] = this->nodes[i]->credit2Return(this->default_rates[i],cReturns[i] / debt_amt[i]);
+
+			// double creturn = this->nodes[i]->creditReturn(this->default_rates[i]);
+			// double c2return = this->nodes[i]->credit2Return(this->default_rates[i]);
+			creturn_all += cReturns[i];
+			creturn2_all += c2Returns[i];
+			// cReturns[i] = creturn / debt_amt[i];
+			// c2Returns[i] = c2return / debt_amt[i];
 
 
 			// double ir_rate = 0;
@@ -1072,9 +1314,26 @@ void CreditNet::updateReturns(){
 			// }
 		}
 		asset_coc_all = asset_coc_all / total_assets;
-		debt_coc_all = debt_coc_all / total_debt;
-		creturn_all = creturn_all / total_debt;
-		creturn2_all = creturn2_all / total_debt;
+		if(total_assets == 0){
+			asset_coc_all = 0.0;
+		}
+
+		debt_coc_all = debt_coc_total / total_debt_vol;
+		// total_debt_vol;
+		if(total_debt_vol == 0){
+			debt_coc_all = 0.0;
+		}
+
+		creturn_all = creturn_all / total_debt_vol;
+		// total_debt_vol;
+		if(total_debt_vol == 0){
+			creturn_all = 0.0;
+		}
+		creturn2_all = creturn2_all / total_debt2;
+		// total_debt_vol;
+		if(total_debt2 == 0){
+			creturn2_all = 0.0;
+		}
 	}
 	// ntrials += 1;
 }
@@ -1084,32 +1343,43 @@ double CreditNet::makeLiquidate(int fid, double amt){
 		cout<<"liquidating "<<amt<<" for node "<<fid<<endl;
 	}
 	double liquidate = amt * 2.0;
-	double sumL = 0;
-	for( auto & a: this->nodes[fid]->assets){
-		if(a.second + sumL > liquidate){
-			a.second = a.second - liquidate + sumL;
-			return 0;
-		}
-		else{
-			sumL += a.second;			
-			a.second = 0;
-		}
+	if (liquidate > this->nodes[fid]->assets){
+		this->makeDefault(fid);
+		return this->nodes[fid]->assets / 2.0;
 	}
-	if(sumL<liquidate){
-		this->nodes[fid]->makeDefault();
-		// unwind(fid);
-		return sumL/2.0;
-	}
+	this->nodes[fid]->assets -= liquidate;
+	// double sumL = 0;
+
+	// for( auto & a: this->nodes[fid]->assets){
+	// 	if(a.second + sumL > liquidate){
+	// 		a.second = a.second - liquidate + sumL;
+	// 		return 0;
+	// 	}
+	// 	else{
+	// 		sumL += a.second;			
+	// 		a.second = 0;
+	// 	}
+	// }
+	// if(sumL<liquidate){
+	// 	this->nodes[fid]->makeDefault();
+	// 	// unwind(fid);
+	// 	return sumL/2.0;
+	// }
 	return 0;
 }
 
-std::tuple<double,double,double> CreditNet::payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double drate, double haircut){
+std::tuple<double,double,double> CreditNet::payAsset(int fid1, int fid2, double amt, string mode, int transSeqNum, string purpose, double drate, double haircut, double crate){
 	this->updateNodeDegrees();
 	if (mode == "SRC_DECIDE"){
 		mode = this->nodes[fid1]->routePreference;
 	}
 
 	// this->print();
+	if(verb){
+		cout<<"purpose: "<<purpose<<endl;
+		cout<<"amount: "<<amt<<endl;		
+	}
+
 
 	// fid1 = 2; fid2 = 0;
 	// cout << "from " << fid1 << ", to " << fid2 << " " << request << " " << mode;
@@ -1125,24 +1395,30 @@ std::tuple<double,double,double> CreditNet::payAsset(int fid1, int fid2, double 
 	this->nodes[fid2]->destNum++;
 	
 	if (lpSolver.solveLpProblem(converter, mode, purpose, crate, deposit_rate, haircut)){
+		
 		double check = converter.copyBack();
-		double debt_coc = converter.getDebtCost();
-		double asset_coc = converter.getAssetCost();
+		double debt_coc_rec = converter.getDebtCost();
+		double asset_coc_rec = converter.getAssetCost();
 		if (round(precision*check)/precision != round(amt*precision)/precision){
 			// cout<< "unwinding amt check failed"<<endl;
 			// cout<< "requested "<< amt<< " routed "<<check<<endl; 
 			// converter.printResult();
 			// cout<<"routed "<<check<<" out of "<<amt<<endl;
-
-			return std::make_tuple(check,asset_coc,debt_coc);
+			// converter.printResult();
+			return std::make_tuple(check,asset_coc_rec,debt_coc_rec);
 		}
 		// this->nodes[fid1]->transactionNum++;
 		// this->nodes[fid1]->successSrc++;
 		// this->nodes[fid2]->successDest++;
 		// cout << " success " << endl;
-		return std::make_tuple(0.0,asset_coc,debt_coc);
+		// converter.printResult();
+		return std::make_tuple(0.0,asset_coc_rec,debt_coc_rec);
 	}
-	// cout << " fail " << endl;
+	cout << "infeasible payment" << endl;
+	if(amt < 0){
+		cout<<"negative requested amount: "<<amt<<endl;
+	}
+	// converter.printResult();	
 	return std::make_tuple(-1.0,0.0,0.0);
 }
 
@@ -1187,123 +1463,123 @@ int CreditNet::pay(int fid1, int fid2, double amt, string mode, int transSeqNum)
 	return 1;
 }
 
-void CreditNet::unwind(int fid){
+// void CreditNet::unwind(int fid){
 
 
-	// int numD = 0;
-	// for (auto nodePair : nodes) {
-	// if(nodes[fid]->getWealth() > 0){
-		// this->nodes[fid]->print();	
-		// cout<<"node "<<fid<<" before default collateral: "<<this->nodes[fid]->getWealth()<<endl;
-		// cout<<"node "<<fid<<" before default wealth: "<<this->nodes[fid]->getScrip()<<endl;		
-	// }
-	grabCollateral(fid,this->nodes[fid]->sumAssets()* 0.5);
-	double deposit_paid = payAsset(fid, marketId, this->nodes[fid]->deposits,"MAX_FLOW", transactionCounter++, "DEBT",this->deposit_rate,this->deposit_rate,this->haircut);
-	double cashleft = this->nodes[fid]->getCash();
-	std::vector<double> debt_pay(nodeNum -1, 0.0);
-	double debtSum = 0;
-	// Node* n = nodes[fid1];
-	for (auto &eIn : this->nodes[fid]->edge_in){
-		for (auto &cEdge : eIn.second->singleCreditEdges){
-			for (auto &debtEdge : cEdge->debt_current){
-				debt_pay[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity;
-				debtSum += debtEdge.second->capacity;
-			}
-		}
-	}
+// 	// int numD = 0;
+// 	// for (auto nodePair : nodes) {
+// 	// if(nodes[fid]->getWealth() > 0){
+// 		// this->nodes[fid]->print();	
+// 		// cout<<"node "<<fid<<" before default collateral: "<<this->nodes[fid]->getWealth()<<endl;
+// 		// cout<<"node "<<fid<<" before default wealth: "<<this->nodes[fid]->getScrip()<<endl;		
+// 	// }
+// 	grabCollateral(fid,this->nodes[fid]->sumAssets()* 0.5);
+// 	double deposit_paid = payAsset(fid, marketId, this->nodes[fid]->deposits,"MAX_FLOW", transactionCounter++, "DEBT",this->deposit_rate,this->deposit_rate,this->haircut);
+// 	double cashleft = this->nodes[fid]->getCash();
+// 	std::vector<double> debt_pay(nodeNum -1, 0.0);
+// 	double debtSum = 0;
+// 	// Node* n = nodes[fid1];
+// 	for (auto &eIn : this->nodes[fid]->edge_in){
+// 		for (auto &cEdge : eIn.second->singleCreditEdges){
+// 			for (auto &debtEdge : cEdge->debt_current){
+// 				debt_pay[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity;
+// 				debtSum += debtEdge.second->capacity;
+// 			}
+// 		}
+// 	}
 
-	for (int p = 0; p < nodeNum -1; p++){
-		grabCollateral(debt_pay[p]/debtSum,p);
-		payCollateral(fid,debt_pay[p]/debtSum);
-		cReturns[fid] += debt_pay[p]/debtSum;
-	}
+// 	for (int p = 0; p < nodeNum -1; p++){
+// 		grabCollateral(debt_pay[p]/debtSum,p);
+// 		payCollateral(fid,debt_pay[p]/debtSum);
+// 		cReturns[fid] += debt_pay[p]/debtSum;
+// 	}
 
 
-	// if(deposit_paid == 0){
-	// 	const int trxNodes = nodes.size() - 1;
-	// 	std::vector<double> cr_pay(trxNodes, 0.0);
-	// 	// Node* n = nodes[fid1];
-	// 	for (auto &eIn : this->nodes[fid]->edge_in){
-	// 		for (auto &cEdge : eIn.second->singleCreditEdges){
-	// 			for (auto &debtEdge : cEdge->debt_current){
-	// 				cr_pay[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity*cEdge->collateralRate;
-	// 			}
-	// 		}
-	// 	}
-	// 	std::vector<int> paid(trxNodes,0);
-	// 	paid[fid] = 1;
-	// 	bool payDone = false;
-	// 	// while (not payDone){
-	// 		bool payDone1 = true;
-	// 		for (int i=0;i<cr_pay.size();++i){
-	// 			if (paid[i] == 0 && i!= fid){
-	// 				// cout<<"unwinding collateral "<<cr_pay[i]<<" to node "<<i<<endl;
-	// 				double success = payAsset(fid, i, cr_pay[i], "MAX_FLOW", transactionCounter++,"DEBT",CR,deposit_rate,haircut);
-	// 				if (success == 0){
-	// 					// cout<<"collateral unwound"<<endl;
-	// 					paid[i] = 1;
-	// 					cReturns[i]+=cr_pay[i];
-	// 					payDone1 = false;
-	// 				}
-	// 				else{
-	// 					cReturns[i]+=success;
-	// 					cr_pay[i] -= success;
-	// 				}
-	// 			}
-	// 		}
-	// 		// payDone = payDone1;
-	// 	// }
+// 	// if(deposit_paid == 0){
+// 	// 	const int trxNodes = nodes.size() - 1;
+// 	// 	std::vector<double> cr_pay(trxNodes, 0.0);
+// 	// 	// Node* n = nodes[fid1];
+// 	// 	for (auto &eIn : this->nodes[fid]->edge_in){
+// 	// 		for (auto &cEdge : eIn.second->singleCreditEdges){
+// 	// 			for (auto &debtEdge : cEdge->debt_current){
+// 	// 				cr_pay[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity*cEdge->collateralRate;
+// 	// 			}
+// 	// 		}
+// 	// 	}
+// 	// 	std::vector<int> paid(trxNodes,0);
+// 	// 	paid[fid] = 1;
+// 	// 	bool payDone = false;
+// 	// 	// while (not payDone){
+// 	// 		bool payDone1 = true;
+// 	// 		for (int i=0;i<cr_pay.size();++i){
+// 	// 			if (paid[i] == 0 && i!= fid){
+// 	// 				// cout<<"unwinding collateral "<<cr_pay[i]<<" to node "<<i<<endl;
+// 	// 				double success = payAsset(fid, i, cr_pay[i], "MAX_FLOW", transactionCounter++,"DEBT",CR,deposit_rate,haircut);
+// 	// 				if (success == 0){
+// 	// 					// cout<<"collateral unwound"<<endl;
+// 	// 					paid[i] = 1;
+// 	// 					cReturns[i]+=cr_pay[i];
+// 	// 					payDone1 = false;
+// 	// 				}
+// 	// 				else{
+// 	// 					cReturns[i]+=success;
+// 	// 					cr_pay[i] -= success;
+// 	// 				}
+// 	// 			}
+// 	// 		}
+// 	// 		// payDone = payDone1;
+// 	// 	// }
 
-	// 	std::vector<double> debt_pay(trxNodes, 0.0);
-	// 	double debtSum = 0;
-	// 	// Node* n = nodes[fid1];
-	// 	for (auto &eIn : this->nodes[fid]->edge_in){
-	// 		for (auto &cEdge : eIn.second->singleCreditEdges){
-	// 			for (auto &debtEdge : cEdge->debt_current){
-	// 				debt_pay[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity;
-	// 				debtSum += debtEdge.second->capacity;
-	// 			}
-	// 		}
-	// 	}
+// 	// 	std::vector<double> debt_pay(trxNodes, 0.0);
+// 	// 	double debtSum = 0;
+// 	// 	// Node* n = nodes[fid1];
+// 	// 	for (auto &eIn : this->nodes[fid]->edge_in){
+// 	// 		for (auto &cEdge : eIn.second->singleCreditEdges){
+// 	// 			for (auto &debtEdge : cEdge->debt_current){
+// 	// 				debt_pay[eIn.second->nodeFrom->nodeId] += debtEdge.second->capacity;
+// 	// 				debtSum += debtEdge.second->capacity;
+// 	// 			}
+// 	// 		}
+// 	// 	}
 
-	// 	double remaining = 0;
-	// 	for (auto &eOut : this->nodes[fid]->edge_out){
-	// 		for (auto &cEdge : eOut.second->singleCreditEdges){
-	// 			for (auto &debtEdge : cEdge->debt_current){
-	// 				remaining += debtEdge.second->capacity;
-	// 			}
-	// 		}
-	// 	}
+// 	// 	double remaining = 0;
+// 	// 	for (auto &eOut : this->nodes[fid]->edge_out){
+// 	// 		for (auto &cEdge : eOut.second->singleCreditEdges){
+// 	// 			for (auto &debtEdge : cEdge->debt_current){
+// 	// 				remaining += debtEdge.second->capacity;
+// 	// 			}
+// 	// 		}
+// 	// 	}
 
-	// 	std::vector<int> paidDebt(trxNodes,0);
-	// 	paidDebt[fid] = 1;
-	// 	bool debtDone = false;
-	// 	while (not debtDone){
-	// 		bool debtDone1 = true;
-	// 		for (int i=0;i<trxNodes;++i){
-	// 			if (paidDebt[i] == 0 && i!= fid){
-	// 				// cout<<"unwinding debt "<<debt_pay[i]<<" to node "<<i<<endl;
-	// 				double success = payAsset(fid, i, debt_pay[i] * remaining / (0.00000000001+debtSum), "MAX_FLOW", transactionCounter++,"DEBT",CR,deposit_rate,haircut);
+// 	// 	std::vector<int> paidDebt(trxNodes,0);
+// 	// 	paidDebt[fid] = 1;
+// 	// 	bool debtDone = false;
+// 	// 	while (not debtDone){
+// 	// 		bool debtDone1 = true;
+// 	// 		for (int i=0;i<trxNodes;++i){
+// 	// 			if (paidDebt[i] == 0 && i!= fid){
+// 	// 				// cout<<"unwinding debt "<<debt_pay[i]<<" to node "<<i<<endl;
+// 	// 				double success = payAsset(fid, i, debt_pay[i] * remaining / (0.00000000001+debtSum), "MAX_FLOW", transactionCounter++,"DEBT",CR,deposit_rate,haircut);
 
-	// 				if (success == 0){
-	// 					paidDebt[i] = 1;
-	// 					debtDone1 = false;
-	// 					cReturns[i] += debt_pay[i] * remaining / (0.00000000001+debtSum);
-	// 				}
-	// 				else{
-	// 					cReturns[i] += success;
-	// 					debt_pay[i] -= success* debtSum/(0.00000000001+remaining);
-	// 				}
-	// 			}
-	// 		}
-	// 		debtDone = debtDone1;
-	// 	}
-	// 	// cout<<"after default collateral: "<<this->nodes[fid]->getWealth()<<endl;
-	// 	// cout<<"after default wealth: "<<this->nodes[fid]->getScrip()<<endl;	
-	// 	// this->nodes[fid]->print();
-	// }
+// 	// 				if (success == 0){
+// 	// 					paidDebt[i] = 1;
+// 	// 					debtDone1 = false;
+// 	// 					cReturns[i] += debt_pay[i] * remaining / (0.00000000001+debtSum);
+// 	// 				}
+// 	// 				else{
+// 	// 					cReturns[i] += success;
+// 	// 					debt_pay[i] -= success* debtSum/(0.00000000001+remaining);
+// 	// 				}
+// 	// 			}
+// 	// 		}
+// 	// 		debtDone = debtDone1;
+// 	// 	}
+// 	// 	// cout<<"after default collateral: "<<this->nodes[fid]->getWealth()<<endl;
+// 	// 	// cout<<"after default wealth: "<<this->nodes[fid]->getScrip()<<endl;	
+// 	// 	// this->nodes[fid]->print();
+// 	// }
 	
-}
+// }
 
 void CreditNet::printPayoff(){
 	for (auto it : nodes) {
@@ -1399,9 +1675,11 @@ int CreditNet::checkCollateral(int fid1){
 	double col = this->nodes[fid1]->getCollateral(this->deposit_rate);
 	// cout<<"got collateral"<<endl;
 	double w = this->nodes[fid1]->getWealth(this->haircut);
+	// this->nodes[fid1]->print();
 	double buff = w - col;
 	// cout<<"wealth: "<<w<<endl;
-	// cout<<"collateral short: "<<buff<<endl;
+	// cout<<"collateral extra: "<<buff<<endl;
+	// cout<<"defaulted? "<<this->nodes[fid1]->defaulted;
 	if (buff >= 0){
 		this->nodes[fid1]->makeLeveraged(false, this->haircut);		
 		return 0;
@@ -1455,7 +1733,7 @@ int CreditNet::checkCollateral(int fid1){
 	// 		// this->nodes[fid1]->makeLeveraged(true);
 	// 		// return 1;
 	// 	}		
-	// 	// cout << "collateral success " << endl;		
+	// 	// cout << "fcollateral success " << endl;		
 	// 	grabCollateral(fid1,-buff);
 	// 	this->nodes[fid1]->makeLeveraged(false);
 	// 	// route buff from market to fid1
@@ -1463,8 +1741,8 @@ int CreditNet::checkCollateral(int fid1){
 	// }
 	// else{
 		// cout<<"collateral default "<<fid1<<endl;
-		this->nodes[fid1]->makeLeveraged(true);
-		return 1;
+	this->nodes[fid1]->makeLeveraged(true, this->haircut);
+	return 1;
 	// }
 }
 
@@ -1479,24 +1757,38 @@ void CreditNet::grabCollateral(int fid, double amt){
 
 void CreditNet::activateReserves(int fid){
 	double amt = max(0.0,this->nodes[fid]->mReserved);
-	for (auto &it : this->nodes[nodes.size() - 1]->atomicEdge_in){
-		if (it.second->nodeFrom->nodeId == fid){
-			it.second->route(amt, 0, this, this->transactionCounter);			
-		}
-		transactionCounter += 1;
-	}
+	
+	grabCollateral(fid,amt);
+	// for (auto &it : this->nodes[marketId]->atomicEdge_in){
+	// 	if (it.second->nodeFrom->nodeId == fid){
+	// 		it.second->route(amt, 0, this, this->transactionCounter);			
+	// 	}
+	// 	transactionCounter += 1;
+	// }
 	this->nodes[fid]->mReserved = 0.0;
+	this->nodes[fid]->debt_reserve = 0.0;
 }
 
-void CreditNet::deactivateReserves(int fid){
-	double amt = min(reserveT,this->nodes[fid]->getCash());
-	for (auto &it : this->nodes[nodes.size() - 1]->atomicEdge_out){
-		if (it.second->nodeFrom->nodeId == fid){
-			it.second->route(amt, 0, this, this->transactionCounter);			
-		}
-		transactionCounter += 1;
+void CreditNet::deactivateReserves(int fid, int mode){
+	// min(this->nodes[fid]->reserveT,this->nodes[fid]->getCash());
+	// cout<<amt<<endl;
+	double amt = this->nodes[fid]->reserveT;
+	if(mode == 1){
+		//reserve for lending
+		amt += this->nodes[fid]->debt_reserve;
 	}
+	amt = min(amt, this->nodes[fid]->getCash());
+
+	double status = payCash(fid, amt);
+	// for (auto &it : this->nodes[marketId]->atomicEdge_out){
+	// 	if (it.second->nodeFrom->nodeId == fid){
+	// 		it.second->route(amt, 0, this, this->transactionCounter);			
+	// 	}
+	// 	transactionCounter += 1;
+	// }
+	// cout<<"cash available "<<this->nodes[fid]->getCash()<<endl;
 	this->nodes[fid]->mReserved = amt;
+	// cout<<"deactivated"<<endl;
 }
 
 
@@ -1513,185 +1805,185 @@ int CreditNet::payCollateral(int fid, double amt){
 	}
 }
 
-static void deepCopyHelper(CreditNet* newGraph, CreditNet& oldGraph){
+// static void deepCopyHelper(CreditNet* newGraph, CreditNet& oldGraph){
 
-	newGraph->precision = oldGraph.precision;
-	newGraph->transactionCounter = oldGraph.transactionCounter;
-	newGraph->initVol = oldGraph.initVol;
-	newGraph->returns = oldGraph.returns;
-	newGraph->volatilities = oldGraph.volatilities;
-	newGraph->wealths = oldGraph.wealths;
-	newGraph->credits = oldGraph.credits;
-	newGraph->credits_last = oldGraph.credits_last;
-	newGraph->cReturns = oldGraph.cReturns;
-	newGraph->rDefaults = oldGraph.rDefaults;
-	newGraph->cDefaults = oldGraph.cDefaults;
-	newGraph->dDefaults = oldGraph.dDefaults;
-	newGraph->aDefaults = oldGraph.aDefaults;
-	newGraph->ntrials = oldGraph.ntrials;
-	newGraph->deposit_rate = oldGraph.deposit_rate;
-	newGraph->haircut = oldGraph.haircut;
-	newGraph->maturity = oldGraph.maturity;
-	newGraph->initR = oldGraph.initR;
-	newGraph->verb = oldGraph.verb;
-	newGraph->fDefault = oldGraph.fDefault;
+// 	newGraph->precision = oldGraph.precision;
+// 	newGraph->transactionCounter = oldGraph.transactionCounter;
+// 	newGraph->initVol = oldGraph.initVol;
+// 	newGraph->returns = oldGraph.returns;
+// 	newGraph->volatilities = oldGraph.volatilities;
+// 	newGraph->wealths = oldGraph.wealths;
+// 	newGraph->credits = oldGraph.credits;
+// 	newGraph->credits_last = oldGraph.credits_last;
+// 	newGraph->cReturns = oldGraph.cReturns;
+// 	newGraph->rDefaults = oldGraph.rDefaults;
+// 	newGraph->cDefaults = oldGraph.cDefaults;
+// 	newGraph->dDefaults = oldGraph.dDefaults;
+// 	newGraph->aDefaults = oldGraph.aDefaults;
+// 	newGraph->ntrials = oldGraph.ntrials;
+// 	newGraph->deposit_rate = oldGraph.deposit_rate;
+// 	newGraph->haircut = oldGraph.haircut;
+// 	newGraph->maturity = oldGraph.maturity;
+// 	newGraph->initR = oldGraph.initR;
+// 	newGraph->verb = oldGraph.verb;
+// 	newGraph->fDefault = oldGraph.fDefault;
 
-	newGraph->nodeNum = oldGraph.nodeNum;
-	newGraph->atomicGlobalId = oldGraph.atomicGlobalId;
-	newGraph->marketId= oldGraph.marketId;
-	newGraph->expected_deposit= oldGraph.expected_deposit;
-	newGraph->expected_asset_return= oldGraph.expected_asset_return;
-	newGraph->asset_volatility= oldGraph.asset_volatility;
-	newGraph->CR= oldGraph.CR;
-	newGraph->deposit_shock= oldGraph.deposit_shock;
-	newGraph->FFR= oldGraph.FFR;
-	for (auto& it : oldGraph.nodes){
-		newGraph->nodes[it.first] = new Node(it.first);
-		newGraph->nodes[it.first]->transactionNum = it.second->transactionNum;
-		newGraph->nodes[it.first]->routePreference = it.second->routePreference;
-		newGraph->nodes[it.first]->srcNum = it.second->srcNum;
-		newGraph->nodes[it.first]->destNum = it.second->destNum;
-		newGraph->nodes[it.first]->successSrc = it.second->successSrc;
-		newGraph->nodes[it.first]->successDest = it.second->successDest;
-		newGraph->nodes[it.first]->transSeq = it.second->transSeq;
-		newGraph->nodes[it.first]->degree = it.second->degree;
-		newGraph->nodes[it.first]->defaulted = it.second->defaulted;
-		newGraph->nodes[it.first]->leveraged = it.second->leveraged;
-		newGraph->nodes[it.first]->isMarket = it.second->isMarket;
-		newGraph->nodes[it.first]->theta = it.second->theta;
-		newGraph->nodes[it.first]->deposits = it.second->deposits;
-		newGraph->nodes[it.first]->lambda = it.second->lambda;
-		newGraph->nodes[it.first]->w_assets = it.second->w_assets;
-		newGraph->nodes[it.first]->assets = it.second->assets;
-		newGraph->nodes[it.first]->creditReturn = it.second->creditReturn;
-		newGraph->nodes[it.first]->creditVol = it.second->creditVol;
-		newGraph->nodes[it.first]->credit_returns_in = it.second->credit_returns_in;
-		newGraph->nodes[it.first]->credit_vol_in = it.second->credit_vol_in;
-		newGraph->nodes[it.first]->folio_volume = it.second->folio_volume;
-		newGraph->nodes[it.first]->creditPayIn = it.second->creditPayIn;
-		newGraph->nodes[it.first]->creditPayOut = it.second->creditPayOut;
-	}
-	for (auto& oldNodePair : oldGraph.nodes){
-		for (auto& oldEdgePair : oldNodePair.second->edge_in){
-			int fromId = oldEdgePair.first;
-			int toId = oldNodePair.first;
-			Node* newFromNode = newGraph->nodes[fromId];
-			Node* newToNode = newGraph->nodes[toId];
+// 	newGraph->nodeNum = oldGraph.nodeNum;
+// 	newGraph->atomicGlobalId = oldGraph.atomicGlobalId;
+// 	newGraph->marketId= oldGraph.marketId;
+// 	newGraph->expected_deposit= oldGraph.expected_deposit;
+// 	newGraph->expected_asset_return= oldGraph.expected_asset_return;
+// 	newGraph->asset_volatility= oldGraph.asset_volatility;
+// 	newGraph->CR= oldGraph.CR;
+// 	newGraph->deposit_shock= oldGraph.deposit_shock;
+// 	newGraph->FFR= oldGraph.FFR;
+// 	for (auto& it : oldGraph.nodes){
+// 		newGraph->nodes[it.first] = new Node(it.first);
+// 		newGraph->nodes[it.first]->transactionNum = it.second->transactionNum;
+// 		newGraph->nodes[it.first]->routePreference = it.second->routePreference;
+// 		newGraph->nodes[it.first]->srcNum = it.second->srcNum;
+// 		newGraph->nodes[it.first]->destNum = it.second->destNum;
+// 		newGraph->nodes[it.first]->successSrc = it.second->successSrc;
+// 		newGraph->nodes[it.first]->successDest = it.second->successDest;
+// 		newGraph->nodes[it.first]->transSeq = it.second->transSeq;
+// 		newGraph->nodes[it.first]->degree = it.second->degree;
+// 		newGraph->nodes[it.first]->defaulted = it.second->defaulted;
+// 		newGraph->nodes[it.first]->leveraged = it.second->leveraged;
+// 		newGraph->nodes[it.first]->isMarket = it.second->isMarket;
+// 		newGraph->nodes[it.first]->theta = it.second->theta;
+// 		newGraph->nodes[it.first]->deposits = it.second->deposits;
+// 		newGraph->nodes[it.first]->lambda = it.second->lambda;
+// 		newGraph->nodes[it.first]->w_assets = it.second->w_assets;
+// 		newGraph->nodes[it.first]->assets = it.second->assets;
+// 		newGraph->nodes[it.first]->creditReturn = it.second->creditReturn;
+// 		newGraph->nodes[it.first]->creditVol = it.second->creditVol;
+// 		newGraph->nodes[it.first]->credit_returns_in = it.second->credit_returns_in;
+// 		newGraph->nodes[it.first]->credit_vol_in = it.second->credit_vol_in;
+// 		newGraph->nodes[it.first]->folio_volume = it.second->folio_volume;
+// 		newGraph->nodes[it.first]->creditPayIn = it.second->creditPayIn;
+// 		newGraph->nodes[it.first]->creditPayOut = it.second->creditPayOut;
+// 	}
+// 	for (auto& oldNodePair : oldGraph.nodes){
+// 		for (auto& oldEdgePair : oldNodePair.second->edge_in){
+// 			int fromId = oldEdgePair.first;
+// 			int toId = oldNodePair.first;
+// 			Node* newFromNode = newGraph->nodes[fromId];
+// 			Node* newToNode = newGraph->nodes[toId];
 
-			Edge* e = new Edge(*(oldEdgePair.second),
-				newFromNode, newToNode, newGraph->atomicEdges);
-			newToNode->edge_in[fromId] = e;
-			newFromNode->edge_out[toId] = e;
-			newGraph->edges.push_back(e);
-		}
-	}
+// 			Edge* e = new Edge(*(oldEdgePair.second),
+// 				newFromNode, newToNode, newGraph->atomicEdges);
+// 			newToNode->edge_in[fromId] = e;
+// 			newFromNode->edge_out[toId] = e;
+// 			newGraph->edges.push_back(e);
+// 		}
+// 	}
 
-}
+// }
 
-CreditNet::CreditNet(CreditNet &graphT){
-	deepCopyHelper(this, graphT);
-}
+// CreditNet::CreditNet(CreditNet &graphT){
+// 	deepCopyHelper(this, graphT);
+// }
 
-CreditNet& CreditNet::operator=(CreditNet &graphT){
-	deepCopyHelper(this, graphT);
-	return *this;
-}
+// CreditNet& CreditNet::operator=(CreditNet &graphT){
+// 	deepCopyHelper(this, graphT);
+// 	return *this;
+// }
 
-int CreditNet::payIR(int fid1){
-	// // if (this->nodes[fid1]->defaulted){
-	// 	// cout<<"node "<<fid1<< " is already defaulted"<<endl;
-	// 	return 0;
-	// }
-	// // int numD = 0;
-	// // for (auto nodePair : nodes) {
-	// const int nodeSize = nodes.size();
-	// std::vector<double> ir_pay(nodeSize, 0.0);
-	// // Node* n = nodes[fid1];
-	// for (auto &atoOut : this->nodes[fid1]->atomicEdge_out){
-	// 	if ((atoOut.second->isDebt)&&(atoOut.second->capacity>0)){
-	// 		// cout<<"debt detected: "<<atoOut.second->interest_rate * atoOut.second->capacity/100.0<<endl;
-	// 		// atoOut.second->print();
-	// 		int fid2 = atoOut.second->nodeFrom->getNodeId();
-	// 		double rate = atoOut.second->interest_rate/100.0;
-	// 		// cout<<"rate is "<<rate<<endl;
-	// 		// cout<<"debt amount is "<<atoOut.second->capacity<<endl;
-	// 		// cout<<atoOut.second->interest_rate * atoOut.second->capacity/100.0<<" amount interest paid to: "<<fid2<<" out of "<<nodeNum<<endl;
-	// 		ir_pay[fid2] += rate * atoOut.second->capacity;
-	// 		// ir_pay[fid2] += (int) atoOut.second->capacity/(10-atoOut.second->interest_rate);
-	// 		// cout<<ir_pay[fid2]<<" will be paid to "<<fid2<<endl;
-	// 	}
-	// }
-	// // for (int i=0; i< nodeSize; i++){
-	// // 	checkCollateral(i);
-	// // }	
-	// // cout<< "added up "<<fid1<<endl;
-	// for (int i=0; i< nodeSize; i++){
-	// 	if (this->nodes[i]->defaulted || this->nodes[i]->isMarket){
-	// 		// cout<<"node "<<i<< " is market or is already defaulted"<<endl;
-	// 		continue;
-	// 	}		
-	// 	// cout<<ir_pay[i]<<" will be paid to "<<i<<endl;		
-	// 	if(ir_pay[i]>0){
-	// 		// cout<<"ir to pay by "<< fid1 << " to "<< i<< " is "<< ir_pay[i]<<" rounded to " << round(ir_pay[i]*precision)/precision<<endl;
-	// 		// this->updateNodeDegrees();
-	// 		// cout<<"updated degree"<<endl;
-	// 		string mode = this->nodes[fid1]->routePreference;
+// int CreditNet::payIR(int fid1){
+// 	// // if (this->nodes[fid1]->defaulted){
+// 	// 	// cout<<"node "<<fid1<< " is already defaulted"<<endl;
+// 	// 	return 0;
+// 	// }
+// 	// // int numD = 0;
+// 	// // for (auto nodePair : nodes) {
+// 	// const int nodeSize = nodes.size();
+// 	// std::vector<double> ir_pay(nodeSize, 0.0);
+// 	// // Node* n = nodes[fid1];
+// 	// for (auto &atoOut : this->nodes[fid1]->atomicEdge_out){
+// 	// 	if ((atoOut.second->isDebt)&&(atoOut.second->capacity>0)){
+// 	// 		// cout<<"debt detected: "<<atoOut.second->interest_rate * atoOut.second->capacity/100.0<<endl;
+// 	// 		// atoOut.second->print();
+// 	// 		int fid2 = atoOut.second->nodeFrom->getNodeId();
+// 	// 		double rate = atoOut.second->interest_rate/100.0;
+// 	// 		// cout<<"rate is "<<rate<<endl;
+// 	// 		// cout<<"debt amount is "<<atoOut.second->capacity<<endl;
+// 	// 		// cout<<atoOut.second->interest_rate * atoOut.second->capacity/100.0<<" amount interest paid to: "<<fid2<<" out of "<<nodeNum<<endl;
+// 	// 		ir_pay[fid2] += rate * atoOut.second->capacity;
+// 	// 		// ir_pay[fid2] += (int) atoOut.second->capacity/(10-atoOut.second->interest_rate);
+// 	// 		// cout<<ir_pay[fid2]<<" will be paid to "<<fid2<<endl;
+// 	// 	}
+// 	// }
+// 	// // for (int i=0; i< nodeSize; i++){
+// 	// // 	checkCollateral(i);
+// 	// // }	
+// 	// // cout<< "added up "<<fid1<<endl;
+// 	// for (int i=0; i< nodeSize; i++){
+// 	// 	if (this->nodes[i]->defaulted || this->nodes[i]->isMarket){
+// 	// 		// cout<<"node "<<i<< " is market or is already defaulted"<<endl;
+// 	// 		continue;
+// 	// 	}		
+// 	// 	// cout<<ir_pay[i]<<" will be paid to "<<i<<endl;		
+// 	// 	if(ir_pay[i]>0){
+// 	// 		// cout<<"ir to pay by "<< fid1 << " to "<< i<< " is "<< ir_pay[i]<<" rounded to " << round(ir_pay[i]*precision)/precision<<endl;
+// 	// 		// this->updateNodeDegrees();
+// 	// 		// cout<<"updated degree"<<endl;
+// 	// 		string mode = this->nodes[fid1]->routePreference;
 
-	// 		// this->print();
+// 	// 		// this->print();
 
-	// 		// fid1 = 2; fid2 = 0;
-	// 		// cout << "from " << fid1 << ", to " << fid2 << " " << request << " " << mode;
+// 	// 		// fid1 = 2; fid2 = 0;
+// 	// 		// cout << "from " << fid1 << ", to " << fid2 << " " << request << " " << mode;
 
-	// 		CplexConverter converter;
-	// 		converter.constructCplex(this, this->nodes[fid1], this->nodes[i], round(ir_pay[i]*precision)/precision, transactionCounter);
-	// 		transactionCounter += 1;
-	// 		// converter.printInput();
+// 	// 		CplexConverter converter;
+// 	// 		converter.constructCplex(this, this->nodes[fid1], this->nodes[i], round(ir_pay[i]*precision)/precision, transactionCounter);
+// 	// 		transactionCounter += 1;
+// 	// 		// converter.printInput();
 			
-	// 		LpSolver lpSolver;
+// 	// 		LpSolver lpSolver;
 
 			
-	// 		if (lpSolver.solveLpProblem(converter, mode)){
-	// 			// converter.printResult();
-	// 			double check = converter.copyBack();
-	// 			if (round(precision*check)/precision != round(precision*converter.request)/precision){
-	// 				cout<< "interest amt check failed"<<endl;
-	// 				cout<< "owed "<<ir_pay[i]<< " paid "<<check<<endl;
-	// 				// cout<<"default"<<endl;
-	// 				// this->nodes[fid1]->makeDefault();
-	// 				// unwind(fid1);					
-	// 				// return 1;
-	// 			}				
-	// 			// cout << " success " << endl;
-	// 		}
-	// 		// cout << " fail " << endl;
-	// 		else{
-	// 			// cout<<"default"<<endl;
-	// 			// this->nodes[fid1]->print();	
+// 	// 		if (lpSolver.solveLpProblem(converter, mode)){
+// 	// 			// converter.printResult();
+// 	// 			double check = converter.copyBack();
+// 	// 			if (round(precision*check)/precision != round(precision*converter.request)/precision){
+// 	// 				cout<< "interest amt check failed"<<endl;
+// 	// 				cout<< "owed "<<ir_pay[i]<< " paid "<<check<<endl;
+// 	// 				// cout<<"default"<<endl;
+// 	// 				// this->nodes[fid1]->makeDefault();
+// 	// 				// unwind(fid1);					
+// 	// 				// return 1;
+// 	// 			}				
+// 	// 			// cout << " success " << endl;
+// 	// 		}
+// 	// 		// cout << " fail " << endl;
+// 	// 		else{
+// 	// 			// cout<<"default"<<endl;
+// 	// 			// this->nodes[fid1]->print();	
 
-	// 			// this->nodes[i]->print();	
-	// 			// this->print();
-	// 			this->nodes[fid1]->makeDefault();
-	// 			unwind(fid1);				
-	// 			// cout<<"deleted"<<endl;
-	// 			// this->nodes[fid1]->print();
-	// 			// cout<<"printed"<<endl;
-	// 			return 1;
-	// 		}
-	// 	}
-	// }
-	template <typename T>
-		vector<size_t> sort_indexes(const vector<T> &v) {
+// 	// 			// this->nodes[i]->print();	
+// 	// 			// this->print();
+// 	// 			this->nodes[fid1]->makeDefault();
+// 	// 			unwind(fid1);				
+// 	// 			// cout<<"deleted"<<endl;
+// 	// 			// this->nodes[fid1]->print();
+// 	// 			// cout<<"printed"<<endl;
+// 	// 			return 1;
+// 	// 		}
+// 	// 	}
+// 	// }
+// 	template <typename T>
+// 		vector<size_t> sort_indexes(const vector<T> &v) {
 
-		  // initialize original index locations
-		  	vector<size_t> idx(v.size());
-		  	iota(idx.begin(), idx.end(), 0);
+// 		  // initialize original index locations
+// 		  	vector<size_t> idx(v.size());
+// 		  	iota(idx.begin(), idx.end(), 0);
 
-		  // sort indexes based on comparing values in v
-			sort(idx.begin(), idx.end(),
-		       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+// 		  // sort indexes based on comparing values in v
+// 			sort(idx.begin(), idx.end(),
+// 		       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
 
-		  return idx;
-		}
+// 		  return idx;
+// 		}
 
-	return 0;
-}
+// 	return 0;
+// }
