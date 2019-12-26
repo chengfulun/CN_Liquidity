@@ -16,7 +16,7 @@
     "configuration":{
         "numNodes": "11",
         "smoothing": "1",
-        "epochs": "100",
+        "epochs": "80",
         "wealth": "10",
         "deposits": "500",
         "dShock": "6.1",
@@ -28,7 +28,7 @@
         "initV": "0.01",
         "value_bins": "5",
         "mReserve": "0.3",
-        "mLimit": "20",
+        "mLimit": "10",
         "explore_boost": "0.25",
         "defaulted_periods": "7"
     }

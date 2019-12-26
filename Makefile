@@ -12,7 +12,7 @@ LIBFORMAT  = static_pic
 #
 #------------------------------------------------------------
 # 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS)
-CPLEXHOME = /home/frcheng/CPLEX/CPLEX_Studio128
+# CPLEXHOME = /home/frcheng/CPLEX/CPLEX_Studio128
 
 CPLEXDIR = $(CPLEXHOME)/cplex/
 # /home/frcheng/CPLEX/CPLEX_Studio1228/cplex
