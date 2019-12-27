@@ -514,7 +514,7 @@ void Graph::setThetas(vector<string> &v){
 
 		while(ss.good() ){
 			string substr;
-			getline(ss,substr, ',');
+			getline(ss,substr, '_');
 			res.push_back(substr);
 		}
 		nodes[i]->theta = stod(res[0]);

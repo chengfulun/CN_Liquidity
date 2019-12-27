@@ -1379,7 +1379,7 @@ simCtestP:
 	# ./simCollateraltest json 1 2 > 1IR
 	# ./simCollateraltest json 1 1 > 0IR
 	# ./simCollateraltest json 1 3 > 2IR
-	./simCollateraltestP json 1
+	./simCollateraltestP $(folder) $(samps)
 # 	> adjTest0
 # 	./simCollateraltestP json 1 > adjTest2
 # 	./simCollateraltestP json 1 > adjTest1
