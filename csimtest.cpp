@@ -57,6 +57,8 @@ struct Config {
 	string mLimit;
 	string defaulted_periods;
 	string explore_boost;
+	string basel;
+	string basel_lev;
 	vector<string> assignedStrategy;
 };
 
@@ -103,7 +105,9 @@ void readConfig (Config &config, string inPath) {
 	config.mLimit = configObj["mLimit"].GetString();
 	config.explore_boost = configObj["explore_boost"].GetString();
 	config.defaulted_periods = configObj["defaulted_periods"].GetString();
-	
+	config.basel = configObj["basel"].GetString();
+	config.basel_lev = configObj["basel_lev"].GetString();
+
 	const Value& a = doc["assignment"];
 	const Value& b = a["All"];
 	
@@ -157,10 +161,11 @@ void writePayoff (std::vector<PlayerInfo> &players, string outPath) {
 }
 
 int main(int argc, char* argv[]){
-    freopen("output.txt","w",stdout);	
+    freopen("baseltest.txt","w",stdout);
 	string json_folder = argv[1];
 	// cout<<json_folder<<endl;
 	int num_obs = atoi(argv[2]);
+	// cout<<"Start"<<endl;
 	Config config;
 
 
@@ -196,6 +201,13 @@ int main(int argc, char* argv[]){
 	int epochs = stoi(config.epochs);
  	int defaulted_periods = stoi(config.defaulted_periods);
 
+ 	bool basel = false;
+ 	if(stoi(config.basel) >0){
+ 		bool basel = true;
+ 	}
+
+ 	double basel_lev = stod(config.basel_lev);
+
 	std::vector<double> payoffs(finNum - 1,0.0);
  	// vector<double> capacities = {10};
  	// {3,5,7,9,11}
@@ -229,6 +241,7 @@ int main(int argc, char* argv[]){
  	double explore_boost = stod(config.explore_boost);
  	// {1,2,3,4,5}
  	// * precision;
+ 	// cout<<"start loop"<<endl;
  	// cout<<"capacity is "<<capacity<<endl;
  	// cout<<"transaction amount is "<<transAmount<<endl;
 	for (int i = 0; i < num_obs; ++i){
@@ -240,7 +253,7 @@ int main(int argc, char* argv[]){
 			int marketId = finNum - 1;
 
 
-			CreditNet creditNet(shock, finNum,precision, marketId, initR, initV, deposit_rate, deposit, haircut, mReserve, mLimit, value_bins, EAR, asset_vol, defaulted_periods, explore_boost, outV);
+			CreditNet creditNet(shock, finNum,precision, marketId, initR, initV, deposit_rate, deposit, haircut, mReserve, mLimit, value_bins, EAR, asset_vol, defaulted_periods, explore_boost, basel, basel_lev, outV);
 			// cout<<"initialized crednet"<<endl;
 			creditNet.genMarket0Graph(deposit, shock, wealth, marketId, randThetas);
 			// creditNet.genTest0Graph(threshold, numIR, capacity,maxCR,wealth,marketId);
@@ -265,9 +278,10 @@ int main(int argc, char* argv[]){
 					cout<<"Epoch----------------"<<i_e<<endl;
 				}
 				cDefaults += creditNet.makeInvest(false,vv);
+				// cout<<"make invest"<<endl;
 				// creditNet.print();
 				if (outResults){
-					creditNet.resultsOut_1();
+					creditNet.results_macro();
 				}
 				double rr = (credNetConstants.normalDistribution(
 									credNetConstants.globalGenerator))*log_vol + log_mu;
@@ -282,7 +296,7 @@ int main(int argc, char* argv[]){
 							payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0) * 0.1;
 								// *precision
 							// cout << endl;
-				}				
+				}			
 					// cout<<"paid IR"<<endl;
 					// cout<<"node "<< l << " processed"<<endl;
 					// cDefaults += creditNet.checkCollateral(l);
@@ -308,6 +322,9 @@ int main(int argc, char* argv[]){
 			
 		
 			}
+			if (outResults){
+				creditNet.results_macro_all();
+			}			
 			// for (int k = 0; k < finNum - 2; k++){
 			// 			// cout << creditNet.nodes[k]->transactionNum << "  " << creditNet.nodes[k]->getCurrBalance()/(precision*100)<<"   ";
 			// 			payoffs[k] += (double) creditNet.nodes[k]->getWealth(1.0);

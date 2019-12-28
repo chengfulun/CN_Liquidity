@@ -16,7 +16,8 @@ public:
 	CreditNet(double dVol, int finNumT, double precision, int marketId, 
 		double initR,double initVol,double drate, double deposit,
 		double haircut, double mReserve, double mLimit,
-		int valueBins, double EAR, double asset_vol, int defaulted_periods, double explore_boost, bool verb);
+		int valueBins, double EAR, double asset_vol, int defaulted_periods, double explore_boost, 
+		bool basel, double max_lev, bool verb);
 	CreditNet();
 	CreditNet(CreditNet &graphT);
 	CreditNet& operator=(CreditNet &graphT);
@@ -73,8 +74,8 @@ public:
 	double total_debt;
 	double total_assets;
 
-	double asset_coc_all;
-	double debt_coc_all;
+	double asset_coc_all=0;
+	double debt_coc_all=0;
 	double creturn_all;
 	double creturn2_all;
 
@@ -167,6 +168,57 @@ public:
 	double payCash(int fid, double amt);
 	double dVol;
 	double dRevert;
+
+	double total_defaults = 0.0;
+	double defaultable_periods = nodeNum - 1 + 0.0;
+
+	double total_ir = 0.0; //weight by debt
+	double total_cr = 0.0; //weight by debt
+	double total_debt_res = 0.0;
+	double total_wealth = 0.0;
+
+	double capital_loss =0.0;
+
+
+	double total_dr = 0; //weight by wealth
+
+
+	double total_credit = 0;
+
+	double total_cr_extended = 0; //weight by credit
+	double total_ir_extended = 0; //weight be credit
+
+	double ir_collateralized = 0; //weight by debt collateralized
+	double ir_free = 0; //weight by debt not collateralized
+	double debt_collateralized = 0;
+	double debt_free = 0;
+
+	double total_defaults_sum = 0;
+	double defaultable_periods_sum = 0;
+	double total_ir_sum = 0;
+	double total_cr_sum = 0;
+	double total_debt_res_sum = 0;
+	double total_wealth_sum = 0;
+	double capital_loss_sum = 0;
+	double total_dr_sum = 0;
+	double total_credit_sum = 0;
+	double total_cr_extended_sum =0;
+	double total_ir_extended_sum = 0;
+	double ir_collateralized_sum = 0;
+	double ir_free_sum = 0;
+	double debt_collateralized_sum = 0;
+	double debt_free_sum = 0;
+
+	void results_macro();
+	void results_macro_all();
+
+	void updateBasel();
+
+// max_dr hardcoded as 0.14
+	double max_lev;
+	bool basel;
+
+	double mLimit_sum = 0;
 
 };
 

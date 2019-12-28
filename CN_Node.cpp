@@ -586,6 +586,7 @@ void Node::getLambda(double E, double sigma_sq, double E_debt, double sigma_sq_d
 	}
 
 
+
 void Node::postCashUpdate(double haircut){
 	double max_payment = this->maxCredit() + this->getScrip() - this->mReserved;
 	// - this->mReserve;

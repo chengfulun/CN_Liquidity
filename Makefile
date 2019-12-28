@@ -12,7 +12,7 @@ LIBFORMAT  = static_pic
 #
 #------------------------------------------------------------
 # 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS)
-# CPLEXHOME = /home/frcheng/CPLEX/CPLEX_Studio128
+CPLEXHOME = /home/frcheng/CPLEX/CPLEX_Studio128
 
 CPLEXDIR = $(CPLEXHOME)/cplex/
 # /home/frcheng/CPLEX/CPLEX_Studio1228/cplex
@@ -1385,6 +1385,24 @@ simCtestP:
 # 	./simCollateraltestP json 1 > adjTest1
 
 
+simCtestp_eval:
+	g++ -g -c CN_Constants.cpp -std=c++11
+	g++ -g -c CN_Node.cpp -std=c++11
+	g++ -g -c CN_Edge.cpp -std=c++11
+	g++ -g -c CN_Graph.cpp -std=c++11
+	g++ -g -c CN_WidgetGraph.cpp -std=c++11
+	g++ -g -c CN_CplexConverter.cpp -std=c++11
+	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_Solver.cpp -std=c++11
+	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS) CN_CreditNet.cpp -std=c++11
+	$(CCC) -g $(CCFLAGS) $(CPPFLAGS) $(CCLNDIRS) -o simCollateraltestP_eval1 csim_statics.cpp *.o $(CCLNFLAGS) -std=c++11
+	# ./testCollateral json
+	# ./simCollateraltest json 1 2 > 1IR
+	# ./simCollateraltest json 1 1 > 0IR
+	# ./simCollateraltest json 1 3 > 2IR
+	./simCollateraltestP_eval1 json 1
+# 	> adjTest0
+# 	./simCollateraltestP json 1 > adjTest2
+# 	./simCollateraltestP json 1 > adjTest1
 
 
 

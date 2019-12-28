@@ -140,7 +140,7 @@ public:
 			cout<<"capacity "<<this->capacity<<" nodeFrom: "<<this->nodeFrom->nodeId<<" defaulted "<<this->nodeFrom->defaulted<<" nodeTo: "<<this->nodeTo->nodeId<<" defaulted "<<this->nodeTo->defaulted<<" val: "<<sendVal<<" isDebt: "<<this->isDebt<<" cval: "<<this->collateral_value<<" IR: "<<IR<<" dr: "<<this->default_rate<<endl;
 		}
 
-		return max(-0.8,min(0.0,sendVal));
+		return max(-0.07,min(0.0,sendVal));
 	}
 
 	double getReceiveValue(double IR){
@@ -169,7 +169,7 @@ public:
 			cout<<"receivingVal too high value"<<endl;
 			cout<<"capacity "<<this->capacity<<" nodeFrom: "<<this->nodeFrom->nodeId<<" defaulted "<<this->nodeFrom->defaulted<<" nodeTo: "<<this->nodeTo->nodeId<<" defaulted "<<this->nodeTo->defaulted<<" val: "<<rVal<<" isDebt: "<<this->isDebt<<" cval: "<<this->collateral_value<<" IR: "<<IR<<" dr: "<<this->default_rate<<endl;
 		}
-		return min(0.8,max(0.0,rVal));	
+		return min(0.07,max(0.0,rVal));	
 	}
 
 	void updateDR(double DR){

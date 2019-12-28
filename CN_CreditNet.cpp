@@ -50,7 +50,8 @@ double uniform_cdf(double x, double T){
 CreditNet::CreditNet(double dVol, int finNumT, double precision, 
 	int marketId, double initR,double initVol, 
 	double deposit_rate, double deposit, double haircut, double mReserve, double mLimit,
-	int valueBins, double EAR, double asset_vol, int defaulted_periods, double explore_boost, bool verb) : Graph(finNumT, marketId){
+	int valueBins, double EAR, double asset_vol, int defaulted_periods, double explore_boost, 
+	bool basel, double max_lev, bool verb) : Graph(finNumT, marketId){
 	this->precision = precision;
 	this->transactionCounter = 0;
 	this->marketId = marketId;
@@ -76,6 +77,9 @@ CreditNet::CreditNet(double dVol, int finNumT, double precision,
 
 	this->dVol = dVol;
 	this->dRevert = deposit_rate;
+
+	this->basel = basel;
+	this->max_lev = max_lev;
 	// returns.assign(nodeNum, initR);
 	// this->wealths.assign(nodeNum, 0.0);
 	// credits.assign(nodeNum, 0.0);
@@ -134,6 +138,15 @@ vector<int> rix(int l){
 }
 
 
+void CreditNet::updateBasel(){
+	double DR_all = total_dr / total_wealth;
+	if (total_wealth == 0){
+		DR_all = 0.0;
+	}
+	double sigmoid = 1 / (1+ exp(9.21 -614.51 * DR_all));
+	this->mLimit = sigmoid + (1-sigmoid) * max_lev;
+}
+
 
 void CreditNet::record_values(){
 	this->all_values.clear();
@@ -141,6 +154,7 @@ void CreditNet::record_values(){
 		if(not e.second->nodeTo->isMarket and not e.second->nodeTo->defaulted and not e.second->nodeFrom->defaulted){
 			this->all_values.push_back(e.second->getSendValue(e.second->interest_rate));
 			this->all_values.push_back(e.second->getReceiveValue(e.second->interest_rate));
+
 		}
 	}
 }
@@ -207,15 +221,25 @@ void CreditNet::updateLambdas(){
 
 
 void CreditNet::update_default_rates(){
+	// get overall dr for basel
+	this->total_dr = 0.0;
+
 	for (int j = 0; j<nodeNum - 1; j++){
 		this->default_rates[j] = this->defaultRate(j);
+		this->total_dr += default_rates[j] * this->nodes[j]->getWealth(haircut);
+		total_wealth += this->nodes[j]->getWealth(haircut);
 		if(fabs(this->defaultRate(j)) > 1){
 			cout<<"WARNING HIGH DR"<<endl;
 		}
 		if(verb){
 			cout<<"nodenum: "<<j<<" default rate: "<<this->defaultRate(j)<<endl;			
 		}
+
 	}
+
+	// total_dr = total_dr / dr_weight;
+
+
 	for (auto &e : this->atomicEdges){
 		double DR = this->default_rates[e.second->nodeTo->nodeId];
 		e.second->updateDR(DR);
@@ -306,7 +330,7 @@ void CreditNet::updateCreditPremiums(double thresh, double uprate, double downra
 		if (credit_utils[i] > thresh){
 			this->nodes[i]->credit_premium *= uprate;
 		}
-		else{
+		if (credit_utils[i] < thresh - 0.2){
 			this->nodes[i]->credit_premium *= downrate;
 		}
 	}
@@ -386,6 +410,13 @@ void CreditNet::updateCreditLimits(){
 						this->nodes[fromId]->debt_in += it.second->capacity;
 						// cout<<"after "<<this->nodes[j]->creditPayOut[fromId].second<<endl;
 					}
+					total_ir += amt*it.second->interest_rate;
+					total_cr += amt*tempCR;
+					total_debt_res += amt;
+					ir_collateralized += tempCR * it.second->interest_rate * amt;
+					ir_free += (1-tempCR) * it.second->interest_rate * amt;
+					debt_collateralized += tempCR * amt;
+					debt_free += (1-tempCR)*amt;
 
 					if(verb){
 						cout<<"cpayout "<<this->nodes[j]->creditPayOut[fromId][1]<<" from "<<j<<" to "<<fromId<<endl;
@@ -470,8 +501,8 @@ void CreditNet::updateCreditLimits(){
 			if(verb){
 				cout<<"node "<<j<<"'s' inactive budget "<<inactive_budget<<" active budget "<<active_budget<<endl;				
 			}
-			vector<int> rand_ix = rix(nodeNum-1);
-			for (int i = 0; i< nodeNum - 1; i++){
+			vector<int> rand_ix = rix(nodeNum);
+			for (int i = 0; i< nodeNum; i++){
 				int ii = rand_ix[i];
 			// cout<<cShares[i]<<endl;
 				if(ii!= j && ii!= marketId and j!= marketId and not this->nodes[ii]->defaulted){
@@ -496,6 +527,8 @@ void CreditNet::updateCreditLimits(){
 							inactive_budget -= cap;					
 						}
 					}
+					total_credit += cap;
+					total_cr_extended += this->nodes[j]->CR_base * cap;
 					// this->nodes[i]->print();
 					// credits_sq[i] += cap*cap;
 
@@ -546,11 +579,12 @@ void CreditNet::updateCreditTerms(){
 		double DR = default_rates[e.second->nodeTo->nodeId];
 
 		if (DR > 0.70){
+			e.second->originEdge->singleCreditEdges[e.second->singleCreditIndex]->credit_max -= e.second->capacity;
 			e.second->capacity = 0;
 			continue;
 		}
 		double CR = e.second->nodeFrom->CR_base;
-		double ir_set = min(0.8,(DR + e.second->nodeFrom->credit_premium - 
+		double ir_set = min(0.2,(DR + e.second->nodeFrom->credit_premium - 
 			CR * DR) / ((1-DR)));
 		if(ir_set>=10 and verb){
 			cout<<"IR ERROR"<<endl;
@@ -559,7 +593,8 @@ void CreditNet::updateCreditTerms(){
 		}
 		e.second->originEdge->singleCreditEdges[e.second->singleCreditIndex]->collateralRate = CR;
 		e.second->originEdge->singleCreditEdges[e.second->singleCreditIndex]->credit_interest_rate = ir_set;
-		e.second->interest_rate = ir_set;			 
+		e.second->interest_rate = ir_set;
+		total_ir_extended += ir_set * e.second->capacity;
 	}
 }
 
@@ -696,6 +731,10 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	}
 	// cout<<"finished asset purchases"<<endl;
 	update_default_rates();
+	if(basel){
+		updateBasel();
+	}
+	updateBasel();
 	// cout<<"got dr"<<endl;
 	updateReturns();
 	// cout<<"got returns"<<endl;
@@ -707,7 +746,7 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 
 	updateLineRequests();
 	// cout<<"got lines"<<endl;
-	updateCreditPremiums(0.8, 1.05, 0.8);
+	updateCreditPremiums(0.95, 1.05, 0.9);
 	// cout<<"got prem"<<endl;
 	updateCreditSets(0.25, 2);
 	// cout<<"got csets"<<endl;
@@ -726,6 +765,23 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	
 	ntrials += 1;
 
+	total_defaults_sum += total_defaults;
+	total_ir_sum += total_ir;
+	total_cr_sum += total_cr;
+	total_debt_res_sum += total_debt_res;
+	total_wealth_sum += total_wealth;
+	capital_loss_sum += capital_loss;
+	total_dr_sum += total_dr;
+
+	total_credit_sum += total_credit;
+	total_cr_extended_sum += total_cr_extended;
+	total_ir_extended_sum +=total_ir_extended;
+	ir_collateralized_sum += ir_collateralized;
+	ir_free_sum += ir_free;
+	debt_collateralized_sum += debt_collateralized;
+	debt_free_sum += debt_free;
+
+	mLimit_sum += mLimit * total_wealth;
 	return leverages;
 
 
@@ -751,6 +807,23 @@ void CreditNet::clear_history(){
 	std::fill(debt2_amt.begin(),debt2_amt.end(),0.0);
 	std::fill(debt_vol.begin(),debt_vol.end(),0.0);	
 	debt_coc_total = 0.0;
+	total_ir = 0;
+	total_cr = 0;
+	total_dr = 0;
+	total_debt_res = 0;
+	total_wealth = 0;
+	capital_loss = 0;
+	total_defaults = 0;
+
+	total_credit = 0;
+	total_cr_extended = 0;
+	total_ir_extended = 0;
+	ir_collateralized = 0;
+	ir_free = 0;
+	debt_collateralized = 0;
+	debt_free = 0;
+
+	defaultable_periods = nodeNum-1;
 }
 
 void CreditNet::restore_defaulted(int k){
@@ -825,6 +898,35 @@ void CreditNet::resultsOut_1(){
 }
 
 
+void CreditNet::results_macro(){
+	cout<<ntrials<<" "<<total_defaults<<" "<<
+	defaultable_periods<<" "<<total_ir / total_debt_res<<" "<<
+	total_debt_res<<" "<<total_cr / total_debt_res<<" "<<total_dr / total_wealth<<
+	" "<<total_wealth<<" "<<capital_loss<<" "<<
+	total_cr_extended / total_credit<<" "<<
+	total_ir_extended / total_credit<<" "<<
+	total_credit<<" "<<
+	ir_collateralized / debt_collateralized<<" "<<
+	ir_free / debt_free<<" "<<
+	debt_collateralized<<" "<<debt_free<<" "<<mLimit
+	<<endl;	// asset_coc_all<<" "<<debt_coc_all<<endl;
+}
+
+void CreditNet::results_macro_all(){
+	cout<<-1<<" "<<total_defaults_sum<<" "<<
+	defaultable_periods_sum<<" "<<total_ir_sum / total_debt_res_sum<<" "<<
+	total_debt_res_sum<<" "<<total_cr_sum / total_debt_res_sum<<" "<<total_dr_sum / total_wealth_sum<<
+	" "<<total_wealth_sum<<" "<<capital_loss_sum<<" "<<
+	total_cr_extended_sum / total_credit_sum<<" "<<
+	total_ir_extended_sum / total_credit_sum<<" "<<
+	total_credit_sum<<" "<<
+	ir_collateralized_sum / debt_collateralized_sum<<" "<<
+	ir_free_sum / debt_free_sum<<" "<<
+	debt_collateralized_sum<<" "<<debt_free_sum<<" "<<mLimit_sum / total_wealth_sum
+	<<endl;
+	// asset_coc_all<<" "<<debt_coc_all<<endl;
+}
+
 int CreditNet::shockPay(double alpha, bool crisis){
 	this->alpha = alpha;
 	// fill(cReturns.begin(), cReturns.end(), 0.0);
@@ -837,6 +939,14 @@ int CreditNet::shockPay(double alpha, bool crisis){
 	
 	//deposit shock
 	clear_history();
+
+	for (int fid = 0; fid< nodeNum-1;fid++){
+		if (this->nodes[fid]->defaulted){
+			defaultable_periods -= 1;
+		}
+	}
+
+	defaultable_periods_sum += defaulted_periods;
 
 	vector<int>randix  = rix(	nodeNum );
 
@@ -993,9 +1103,11 @@ int CreditNet::shockPay(double alpha, bool crisis){
 				std::tie(paymentFail,asset_cost,debt_cost) = payAsset(ff, cPay.first, cPay.second[1], "MAX_FLOW_SRC", transactionCounter++, "DEBT",deposit_rate,haircut,current_crate);					
 
 				if(paymentFail > 0){
+
 					double left = cPay.second[1] - paymentFail;
 					double status = payCash(ff, left);
 					if(status > 0){
+						capital_loss += cPay.second[1];
 						if(verb){
 							cout<<"node "<<ff<<" couldn't pay credit "<<cPay.second[1] - paymentFail<<" defaulted"<<endl;
 							this->nodes[ff]->printBalance();								
@@ -1123,6 +1235,7 @@ void CreditNet::makeDefault(int fid){
 		cout<<"unpaid debt out: "<<this->nodes[fid]->debt_out<<endl;
 		cout<<"unpaid debt in: "<<this->nodes[fid]->debt_in<<endl;		
 	}
+	total_defaults += 1;
 	// this->nodes[fid]->print();
 	this->nodes[fid]->defaulted = true;
 	this->nodes[fid]->reserveT = 0.0;
@@ -1174,6 +1287,7 @@ void CreditNet::makeDefault(int fid){
 	for(auto &eOut : this->nodes[fid]->atomicEdge_out){
 		if(eOut.second->isDebt){
 			double owe = eOut.second->capacity * eOut.second->CR();
+			capital_loss += eOut.second->capacity * (1-eOut.second->CR());
 			grabCollateral(eOut.second->nodeFrom->nodeId,owe);
 			this->cReturns_real[eOut.second->nodeFrom->nodeId] += owe;
 		}
