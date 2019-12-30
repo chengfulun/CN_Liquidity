@@ -15,7 +15,7 @@
     },
     "configuration":{
         "numNodes": "11",
-        "smoothing": "1",
+        "smoothing": "50",
         "epochs": "80",
         "wealth": "10",
         "deposits": "500",
@@ -26,12 +26,12 @@
         "haircut": "1.0",
         "initR": "0.01",
         "initV": "0.01",
-        "value_bins": "5",
+        "value_bins": "40",
         "mReserve": "0.3",
-        "mLimit": "20",
+        "mLimit": "5",
         "explore_boost": "0.25",
         "defaulted_periods": "7",
-        "basel": "1",
-        "basel_lev": "20"
+        "basel": "0",
+        "basel_lev": "10"
     }
 }

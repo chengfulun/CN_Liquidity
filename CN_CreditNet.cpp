@@ -734,7 +734,6 @@ int CreditNet::makeInvest(bool forced, bool verbose){
 	if(basel){
 		updateBasel();
 	}
-	updateBasel();
 	// cout<<"got dr"<<endl;
 	updateReturns();
 	// cout<<"got returns"<<endl;
@@ -946,7 +945,7 @@ int CreditNet::shockPay(double alpha, bool crisis){
 		}
 	}
 
-	defaultable_periods_sum += defaulted_periods;
+	defaultable_periods_sum += defaultable_periods;
 
 	vector<int>randix  = rix(	nodeNum );
 
@@ -1528,10 +1527,10 @@ std::tuple<double,double,double> CreditNet::payAsset(int fid1, int fid2, double 
 		// converter.printResult();
 		return std::make_tuple(0.0,asset_coc_rec,debt_coc_rec);
 	}
-	cout << "infeasible payment" << endl;
-	if(amt < 0){
-		cout<<"negative requested amount: "<<amt<<endl;
-	}
+	// cout << "infeasible payment" << endl;
+	// if(amt < 0){
+	// 	cout<<"negative requested amount: "<<amt<<endl;
+	// }
 	// converter.printResult();	
 	return std::make_tuple(-1.0,0.0,0.0);
 }

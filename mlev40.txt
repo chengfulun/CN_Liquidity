@@ -1,0 +1,1430 @@
+Epoch----------------0
+purpose: ASSET
+amount: 12.5
+routed 12.5 collateral from 4
+paid assets 0
+purpose: ASSET
+amount: 4.16667
+routed 4.16667 collateral from 7
+paid assets 0
+purpose: ASSET
+amount: 6.25
+routed 6.25 collateral from 8
+paid assets 0
+purpose: ASSET
+amount: 2.5
+routed 2.5 collateral from 0
+paid assets 0
+purpose: ASSET
+amount: 2.5
+routed 2.5 collateral from 5
+paid assets 0
+purpose: ASSET
+amount: 4.16667
+routed 4.16667 collateral from 2
+paid assets 0
+purpose: ASSET
+amount: 3.125
+routed 3.125 collateral from 1
+paid assets 0
+purpose: ASSET
+amount: 3.125
+routed 3.125 collateral from 6
+paid assets 0
+purpose: ASSET
+amount: 12.5
+routed 12.5 collateral from 9
+paid assets 0
+purpose: ASSET
+amount: 6.25
+routed 6.25 collateral from 3
+paid assets 0
+nodenum: 0 default rate: 0
+nodenum: 1 default rate: 0
+nodenum: 2 default rate: 0
+nodenum: 3 default rate: 0
+nodenum: 4 default rate: 0.0356826
+nodenum: 5 default rate: 0
+nodenum: 6 default rate: 0
+nodenum: 7 default rate: 0
+nodenum: 8 default rate: 0
+nodenum: 9 default rate: 0.0356826
+node 0 theta 1 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 1 theta 0.8 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 2 theta 0.6 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 3 theta 0.4 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 4 theta 0.2 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 5 theta 1 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 6 theta 0.8 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 7 theta 0.6 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 8 theta 0.4 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 9 theta 0.2 portfolio size 100 lambda inf assets 0 wealth 10
+want assets -nan
+node 0 requests 0
+node 1 requests 0
+node 2 requests 0
+node 3 requests 0
+node 4 requests 0
+node 5 requests 0
+node 6 requests 0
+node 7 requests 0
+node 8 requests 0
+node 9 requests 0
+active status: -1 from node 0 to node 1
+active status: -1 from node 0 to node 2
+active status: -1 from node 0 to node 3
+active status: -1 from node 0 to node 4
+active status: -1 from node 0 to node 5
+active status: -1 from node 0 to node 6
+active status: -1 from node 0 to node 7
+active status: -1 from node 0 to node 8
+active status: -1 from node 0 to node 9
+node 0's' inactive budget 100 active budget 0
+active status: -1 from node 1 to node 0
+active status: -1 from node 1 to node 2
+active status: -1 from node 1 to node 3
+active status: -1 from node 1 to node 4
+active status: -1 from node 1 to node 5
+active status: -1 from node 1 to node 6
+active status: -1 from node 1 to node 7
+active status: -1 from node 1 to node 8
+active status: -1 from node 1 to node 9
+node 1's' inactive budget 100 active budget 0
+active status: -1 from node 2 to node 0
+active status: -1 from node 2 to node 1
+active status: -1 from node 2 to node 3
+active status: -1 from node 2 to node 4
+active status: -1 from node 2 to node 5
+active status: -1 from node 2 to node 6
+active status: -1 from node 2 to node 7
+active status: -1 from node 2 to node 8
+active status: -1 from node 2 to node 9
+node 2's' inactive budget 100 active budget 0
+active status: -1 from node 3 to node 0
+active status: -1 from node 3 to node 1
+active status: -1 from node 3 to node 2
+active status: -1 from node 3 to node 4
+active status: -1 from node 3 to node 5
+active status: -1 from node 3 to node 6
+active status: -1 from node 3 to node 7
+active status: -1 from node 3 to node 8
+active status: -1 from node 3 to node 9
+node 3's' inactive budget 100 active budget 0
+active status: -1 from node 4 to node 0
+active status: -1 from node 4 to node 1
+active status: -1 from node 4 to node 2
+active status: -1 from node 4 to node 3
+active status: -1 from node 4 to node 5
+active status: -1 from node 4 to node 6
+active status: -1 from node 4 to node 7
+active status: -1 from node 4 to node 8
+active status: -1 from node 4 to node 9
+node 4's' inactive budget 100 active budget 0
+active status: -1 from node 5 to node 0
+active status: -1 from node 5 to node 1
+active status: -1 from node 5 to node 2
+active status: -1 from node 5 to node 3
+active status: -1 from node 5 to node 4
+active status: -1 from node 5 to node 6
+active status: -1 from node 5 to node 7
+active status: -1 from node 5 to node 8
+active status: -1 from node 5 to node 9
+node 5's' inactive budget 100 active budget 0
+active status: -1 from node 6 to node 0
+active status: -1 from node 6 to node 1
+active status: -1 from node 6 to node 2
+active status: -1 from node 6 to node 3
+active status: -1 from node 6 to node 4
+active status: -1 from node 6 to node 5
+active status: -1 from node 6 to node 7
+active status: -1 from node 6 to node 8
+active status: -1 from node 6 to node 9
+node 6's' inactive budget 100 active budget 0
+active status: -1 from node 7 to node 0
+active status: -1 from node 7 to node 1
+active status: -1 from node 7 to node 2
+active status: -1 from node 7 to node 3
+active status: -1 from node 7 to node 4
+active status: -1 from node 7 to node 5
+active status: -1 from node 7 to node 6
+active status: -1 from node 7 to node 8
+active status: -1 from node 7 to node 9
+node 7's' inactive budget 100 active budget 0
+active status: -1 from node 8 to node 0
+active status: -1 from node 8 to node 1
+active status: -1 from node 8 to node 2
+active status: -1 from node 8 to node 3
+active status: -1 from node 8 to node 4
+active status: -1 from node 8 to node 5
+active status: -1 from node 8 to node 6
+active status: -1 from node 8 to node 7
+active status: -1 from node 8 to node 9
+node 8's' inactive budget 100 active budget 0
+active status: -1 from node 9 to node 0
+active status: -1 from node 9 to node 1
+active status: -1 from node 9 to node 2
+active status: -1 from node 9 to node 3
+active status: -1 from node 9 to node 4
+active status: -1 from node 9 to node 5
+active status: -1 from node 9 to node 6
+active status: -1 from node 9 to node 7
+active status: -1 from node 9 to node 8
+node 9's' inactive budget 100 active budget 0
+shock done 0.849472
+node 4 deposit shock -301.486 cash 497.5 credit 100 assets 12.5 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 301.486
+routed 301.486 collateral from 4
+node 7 deposit shock 455.773 cash 505.833 credit 100 assets 4.16667 leveraged 0
+node 5 deposit shock -208.646 cash 507.5 credit 100 assets 2.5 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 208.646
+routed 208.646 collateral from 5
+node 0 deposit shock 365.621 cash 507.5 credit 100 assets 2.5 leveraged 0
+node 9 deposit shock 55.3223 cash 497.5 credit 100 assets 12.5 leveraged 0
+node 8 deposit shock -464.615 cash 503.75 credit 100 assets 6.25 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 464.615
+routed 464.615 collateral from 8
+node 6 deposit shock -351.717 cash 506.875 credit 100 assets 3.125 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 351.717
+routed 351.717 collateral from 6
+node 3 deposit shock -352.958 cash 503.75 credit 100 assets 6.25 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 352.958
+routed 352.958 collateral from 3
+node 2 deposit shock -74.0931 cash 505.833 credit 100 assets 4.16667 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 74.0931
+routed 74.0931 collateral from 2
+node 1 deposit shock 142.2 cash 506.875 credit 100 assets 3.125 leveraged 0
+loop done
+Epoch----------------1
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+nodenum: 0 default rate: 0
+nodenum: 1 default rate: 0
+nodenum: 2 default rate: 0
+nodenum: 3 default rate: 0
+nodenum: 4 default rate: 0
+nodenum: 5 default rate: 0
+nodenum: 6 default rate: 0
+nodenum: 7 default rate: 0
+nodenum: 8 default rate: 0
+nodenum: 9 default rate: 0
+node 0 theta 1 portfolio size 96.2368 lambda inf assets 0 wealth 9.62368
+want assets -nan
+node 1 theta 0.8 portfolio size 95.296 lambda inf assets 0 wealth 9.5296
+want assets -nan
+node 2 theta 0.6 portfolio size 93.728 lambda inf assets 0 wealth 9.3728
+want assets -nan
+node 3 theta 0.4 portfolio size 90.592 lambda inf assets 0 wealth 9.0592
+want assets -nan
+node 4 theta 0.2 portfolio size 81.184 lambda inf assets 0 wealth 8.1184
+want assets -nan
+node 5 theta 1 portfolio size 96.2368 lambda inf assets 0 wealth 9.62368
+want assets -nan
+node 6 theta 0.8 portfolio size 95.296 lambda inf assets 0 wealth 9.5296
+want assets -nan
+node 7 theta 0.6 portfolio size 93.728 lambda inf assets 0 wealth 9.3728
+want assets -nan
+node 8 theta 0.4 portfolio size 90.592 lambda inf assets 0 wealth 9.0592
+want assets -nan
+node 9 theta 0.2 portfolio size 81.184 lambda inf assets 0 wealth 8.1184
+want assets -nan
+node 0 requests 0
+node 1 requests 0
+node 2 requests 0
+node 3 requests 0
+node 4 requests 0
+node 5 requests 0
+node 6 requests 0
+node 7 requests 0
+node 8 requests 46.1474
+node 9 requests 0
+active status: -1 from node 0 to node 1
+active status: -1 from node 0 to node 2
+active status: -1 from node 0 to node 3
+active status: -1 from node 0 to node 4
+active status: -1 from node 0 to node 5
+active status: -1 from node 0 to node 6
+active status: -1 from node 0 to node 7
+active status: -1 from node 0 to node 8
+active status: -1 from node 0 to node 9
+node 0's' inactive budget 96.2368 active budget 0
+active status: -1 from node 1 to node 0
+active status: -1 from node 1 to node 2
+active status: -1 from node 1 to node 3
+active status: -1 from node 1 to node 4
+active status: -1 from node 1 to node 5
+active status: -1 from node 1 to node 6
+active status: -1 from node 1 to node 7
+active status: -1 from node 1 to node 8
+active status: -1 from node 1 to node 9
+node 1's' inactive budget 95.296 active budget 0
+active status: -1 from node 2 to node 0
+active status: -1 from node 2 to node 1
+active status: -1 from node 2 to node 3
+active status: -1 from node 2 to node 4
+active status: -1 from node 2 to node 5
+active status: -1 from node 2 to node 6
+active status: -1 from node 2 to node 7
+active status: -1 from node 2 to node 8
+active status: -1 from node 2 to node 9
+node 2's' inactive budget 93.728 active budget 0
+active status: -1 from node 3 to node 0
+active status: -1 from node 3 to node 1
+active status: -1 from node 3 to node 2
+active status: -1 from node 3 to node 4
+active status: -1 from node 3 to node 5
+active status: -1 from node 3 to node 6
+active status: -1 from node 3 to node 7
+active status: -1 from node 3 to node 8
+active status: -1 from node 3 to node 9
+node 3's' inactive budget 90.592 active budget 0
+active status: -1 from node 4 to node 0
+active status: -1 from node 4 to node 1
+active status: -1 from node 4 to node 2
+active status: -1 from node 4 to node 3
+active status: -1 from node 4 to node 5
+active status: -1 from node 4 to node 6
+active status: -1 from node 4 to node 7
+active status: -1 from node 4 to node 8
+active status: -1 from node 4 to node 9
+node 4's' inactive budget 81.184 active budget 0
+active status: -1 from node 5 to node 0
+active status: -1 from node 5 to node 1
+active status: -1 from node 5 to node 2
+active status: -1 from node 5 to node 3
+active status: -1 from node 5 to node 4
+active status: -1 from node 5 to node 6
+active status: -1 from node 5 to node 7
+active status: -1 from node 5 to node 8
+active status: -1 from node 5 to node 9
+node 5's' inactive budget 96.2368 active budget 0
+active status: -1 from node 6 to node 0
+active status: -1 from node 6 to node 1
+active status: -1 from node 6 to node 2
+active status: -1 from node 6 to node 3
+active status: -1 from node 6 to node 4
+active status: -1 from node 6 to node 5
+active status: -1 from node 6 to node 7
+active status: -1 from node 6 to node 8
+active status: -1 from node 6 to node 9
+node 6's' inactive budget 95.296 active budget 0
+active status: -1 from node 7 to node 0
+active status: -1 from node 7 to node 1
+active status: -1 from node 7 to node 2
+active status: -1 from node 7 to node 3
+active status: -1 from node 7 to node 4
+active status: -1 from node 7 to node 5
+active status: -1 from node 7 to node 6
+active status: -1 from node 7 to node 8
+active status: -1 from node 7 to node 9
+node 7's' inactive budget 93.728 active budget 0
+active status: -1 from node 8 to node 0
+active status: -1 from node 8 to node 1
+active status: -1 from node 8 to node 2
+active status: -1 from node 8 to node 3
+active status: -1 from node 8 to node 4
+active status: -1 from node 8 to node 5
+active status: -1 from node 8 to node 6
+active status: -1 from node 8 to node 7
+active status: -1 from node 8 to node 9
+node 8's' inactive budget 90.592 active budget 0
+active status: -1 from node 9 to node 0
+active status: -1 from node 9 to node 1
+active status: -1 from node 9 to node 2
+active status: -1 from node 9 to node 3
+active status: -1 from node 9 to node 4
+active status: -1 from node 9 to node 5
+active status: -1 from node 9 to node 6
+active status: -1 from node 9 to node 7
+active status: -1 from node 9 to node 8
+node 9's' inactive budget 81.184 active budget 0
+shock done 1.28711
+node 2 deposit shock -339.155 cash 435.28 credit 80.8945 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 339.155
+routed 339.155 collateral from 2
+node 9 deposit shock -304.667 cash 563.441 credit 82.2883 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 304.667
+routed 304.667 collateral from 9
+node 1 deposit shock -407.28 cash 651.73 credit 80.7203 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 407.28
+routed 407.28 collateral from 1
+node 4 deposit shock -78.6373 cash 206.633 credit 82.2883 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 78.6373
+routed 78.6373 collateral from 4
+node 8 deposit shock -31.7297 cash 44.4446 credit 183.793 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 31.7297
+routed 20.6692 credit to 2 from 8 at IR 0.0081
+routed 9.4111 credit to 5 from 2 at IR 0.0081
+routed 9.4111 collateral from 5
+routed 9.30657 credit to 6 from 2 at IR 0.0081
+routed 9.30657 collateral from 6
+routed 1.95153 credit to 7 from 2 at IR 0.0081
+routed 1.95153 collateral from 7
+routed 11.0604 collateral from 8
+node 3 deposit shock 108.352 cash 156.102 credit 81.243 assets 0 leveraged 0
+node 0 deposit shock 846.357 cash 875.244 credit 80.6158 assets 0 leveraged 0
+node 5 deposit shock -28.6444 cash 291.566 credit 80.6158 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 28.6444
+routed 9.4111 credit to 0 from 5 at IR 0.0081
+routed 9.4111 collateral from 0
+routed 9.13235 credit to 2 from 5 at IR 0.0081
+routed 10.101 collateral from 5
+routed 1.39378 credit to 6 from 2 at IR 0.0081
+routed 7.73857 credit to 9 from 2 at IR 0.0081
+routed 1.39378 credit to 9 from 6 at IR 0.0081
+routed 9.13235 collateral from 9
+node 6 deposit shock 119.183 cash 148.506 credit 80.7203 assets 0 leveraged 0
+node 7 deposit shock -767.591 cash 963.194 credit 80.8945 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 767.591
+routed 767.591 collateral from 7
+loop done
+Epoch----------------2
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+nodenum: 0 default rate: 0
+nodenum: 1 default rate: 0
+nodenum: 2 default rate: 0
+nodenum: 3 default rate: 0
+nodenum: 4 default rate: 0
+nodenum: 5 default rate: 0
+nodenum: 6 default rate: 0
+nodenum: 7 default rate: 0
+nodenum: 8 default rate: 0
+nodenum: 9 default rate: 0
+node 0 theta 1 portfolio size 12.0296 lambda 1.25 assets 0.2 wealth 9.62368
+want assets 2.40592
+node 1 theta 0.8 portfolio size 14.89 lambda 1.5625 assets 0.2 wealth 9.5296
+want assets 2.978
+node 2 theta 0.6 portfolio size 19.5267 lambda 2.08333 assets 0.2 wealth 9.3728
+want assets 3.90533
+node 3 theta 0.4 portfolio size 28.31 lambda 3.125 assets 0.2 wealth 9.0592
+want assets 5.662
+node 4 theta 0.2 portfolio size 50.74 lambda 6.25 assets 0.2 wealth 8.1184
+want assets 10.148
+node 5 theta 1 portfolio size 12.0296 lambda 1.25 assets 0.2 wealth 9.62368
+want assets 2.40592
+node 6 theta 0.8 portfolio size 14.89 lambda 1.5625 assets 0.2 wealth 9.5296
+want assets 2.978
+node 7 theta 0.6 portfolio size 19.5267 lambda 2.08333 assets 0.2 wealth 9.3728
+want assets 3.90533
+node 8 theta 0.4 portfolio size 28.31 lambda 3.125 assets 0.2 wealth 9.0592
+want assets 5.662
+node 9 theta 0.2 portfolio size 50.74 lambda 6.25 assets 0.2 wealth 8.1184
+want assets 10.148
+node 0 requests 0
+node 1 requests 0
+node 2 requests 0
+node 3 requests 0
+node 4 requests 0
+node 5 requests 0
+node 6 requests 0
+node 7 requests 0
+node 8 requests 0
+node 9 requests 0
+cpayout 1.96734 from 2 to 7
+cpayout 10.787 from 2 to 6
+cpayout 9.48733 from 2 to 5
+cpayout 7.80125 from 2 to 9
+cpayout 9.20632 from 5 to 2
+cpayout 9.48733 from 5 to 0
+cpayout 1.40507 from 6 to 9
+cpayout 20.8366 from 8 to 2
+active status: -1 from node 0 to node 1
+active status: -1 from node 0 to node 2
+active status: -1 from node 0 to node 3
+active status: -1 from node 0 to node 4
+active status: 0 from node 0 to node 5
+active status: -1 from node 0 to node 6
+active status: -1 from node 0 to node 7
+active status: -1 from node 0 to node 8
+active status: -1 from node 0 to node 9
+node 0's' inactive budget 9.62368 active budget 0
+active status: -1 from node 1 to node 0
+active status: -1 from node 1 to node 2
+active status: -1 from node 1 to node 3
+active status: -1 from node 1 to node 4
+active status: -1 from node 1 to node 5
+active status: -1 from node 1 to node 6
+active status: -1 from node 1 to node 7
+active status: -1 from node 1 to node 8
+active status: -1 from node 1 to node 9
+node 1's' inactive budget 11.912 active budget 0
+active status: -1 from node 2 to node 0
+active status: -1 from node 2 to node 1
+active status: -1 from node 2 to node 3
+active status: -1 from node 2 to node 4
+active status: 0 from node 2 to node 5
+active status: -1 from node 2 to node 6
+active status: -1 from node 2 to node 7
+active status: 0 from node 2 to node 8
+active status: -1 from node 2 to node 9
+node 2's' inactive budget 15.6213 active budget 0
+active status: -1 from node 3 to node 0
+active status: -1 from node 3 to node 1
+active status: -1 from node 3 to node 2
+active status: -1 from node 3 to node 4
+active status: -1 from node 3 to node 5
+active status: -1 from node 3 to node 6
+active status: -1 from node 3 to node 7
+active status: -1 from node 3 to node 8
+active status: -1 from node 3 to node 9
+node 3's' inactive budget 22.648 active budget 0
+active status: -1 from node 4 to node 0
+active status: -1 from node 4 to node 1
+active status: -1 from node 4 to node 2
+active status: -1 from node 4 to node 3
+active status: -1 from node 4 to node 5
+active status: -1 from node 4 to node 6
+active status: -1 from node 4 to node 7
+active status: -1 from node 4 to node 8
+active status: -1 from node 4 to node 9
+node 4's' inactive budget 40.592 active budget 0
+active status: -1 from node 5 to node 0
+active status: -1 from node 5 to node 1
+active status: 0 from node 5 to node 2
+active status: -1 from node 5 to node 3
+active status: -1 from node 5 to node 4
+active status: -1 from node 5 to node 6
+active status: -1 from node 5 to node 7
+active status: -1 from node 5 to node 8
+active status: -1 from node 5 to node 9
+node 5's' inactive budget 9.62368 active budget 0
+active status: -1 from node 6 to node 0
+active status: -1 from node 6 to node 1
+active status: 0 from node 6 to node 2
+active status: -1 from node 6 to node 3
+active status: -1 from node 6 to node 4
+active status: -1 from node 6 to node 5
+active status: -1 from node 6 to node 7
+active status: -1 from node 6 to node 8
+active status: -1 from node 6 to node 9
+node 6's' inactive budget 11.912 active budget 0
+active status: -1 from node 7 to node 0
+active status: -1 from node 7 to node 1
+active status: -1 from node 7 to node 2
+active status: -1 from node 7 to node 3
+active status: -1 from node 7 to node 4
+active status: -1 from node 7 to node 5
+active status: -1 from node 7 to node 6
+active status: -1 from node 7 to node 8
+active status: -1 from node 7 to node 9
+node 7's' inactive budget 15.6213 active budget 0
+active status: -1 from node 8 to node 0
+active status: -1 from node 8 to node 1
+active status: -1 from node 8 to node 2
+active status: -1 from node 8 to node 3
+active status: -1 from node 8 to node 4
+active status: -1 from node 8 to node 5
+active status: -1 from node 8 to node 6
+active status: -1 from node 8 to node 7
+active status: -1 from node 8 to node 9
+node 8's' inactive budget 22.648 active budget 0
+active status: -1 from node 9 to node 0
+active status: -1 from node 9 to node 1
+active status: 0 from node 9 to node 2
+active status: -1 from node 9 to node 3
+active status: -1 from node 9 to node 4
+active status: -1 from node 9 to node 5
+active status: -1 from node 9 to node 6
+active status: -1 from node 9 to node 7
+active status: -1 from node 9 to node 8
+node 9's' inactive budget 40.592 active budget 0
+shock done 0.69997
+node 8 deposit shock -3.63281 cash 33.3841 credit 19.0548 assets 0 leveraged 1
+pay deposit
+purpose: DEBT
+amount: 3.63281
+routed 3.63281 collateral from 8
+node 7 deposit shock -98.4901 cash 195.604 credit 22.0672 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 98.4901
+routed 98.4901 collateral from 7
+node 5 deposit shock -185.032 cash 281.465 credit 19.1654 assets 0 leveraged 1
+pay deposit
+purpose: DEBT
+amount: 185.032
+routed 185.032 collateral from 5
+node 4 deposit shock -88.1692 cash 127.995 credit 19.2927 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 88.1692
+routed 88.1692 collateral from 4
+node 3 deposit shock 43.4212 cash 264.454 credit 21.2865 assets 0 leveraged 0
+node 2 deposit shock 61.6039 cash 96.1251 credit 13.8053 assets 0 leveraged 0
+node 0 deposit shock -485.102 cash 1712.19 credit 22.5999 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 485.102
+routed 485.102 collateral from 0
+node 6 deposit shock -63.0518 cash 267.688 credit 22.3139 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 63.0518
+routed 63.0518 collateral from 6
+node 1 deposit shock -124.355 cash 244.45 credit 22.4794 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 124.355
+routed 124.355 collateral from 1
+node 9 deposit shock -132.24 cash 249.642 credit 18.7289 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 132.24
+routed 132.24 collateral from 9
+pay credit
+c to pay 1.40507 from 6 to 9
+cash: 204.637
+IOUS: 215.337 debt owed: 1.39378 assets: 0 deposits: 204.413 reserves: 0 debt_in: 10.7003 debt_out: 1.39378 cash: 204.637
+purpose: DEBT
+amount: 1.40507
+routed 1.40507 credit to 9 from 6 at IR 0.00729
+pay credit
+c to pay 7.80125 from 2 to 9
+cash: 157.729
+IOUS: 187.531 debt owed: 29.8016 assets: 0 deposits: 148.356 reserves: 0 debt_in: 29.8016 debt_out: 29.8016 cash: 157.729
+purpose: DEBT
+amount: 7.80125
+routed 1.20296 credit to 0 from 2 at IR 0.00729
+routed 1.32356 credit to 1 from 2 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 4.51022 credit to 4 from 2 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.764515 credit to 8 from 2 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.20296 credit to 9 from 0 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.32356 credit to 9 from 1 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 4.51022 credit to 9 from 4 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.764515 credit to 9 from 8 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+pay credit
+c to pay 9.48733 from 2 to 5
+cash: 157.729
+IOUS: 187.531 debt owed: 29.8642 assets: 0 deposits: 148.356 reserves: 0 debt_in: 29.8016 debt_out: 22.063 cash: 157.729
+purpose: DEBT
+amount: 9.48733
+routed 1.20296 credit to 0 from 2 at IR 0.00729
+routed 1.07042 credit to 3 from 2 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 credit to 5 from 0 at IR 0.00729
+routed 1.07042 credit to 5 from 3 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.20296 credit to 5 from 6 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 credit to 5 from 7 at IR 0.00729
+routed 1.20296 credit to 5 from 8 at IR 0.00729
+routed 0.643268 credit to 5 from 9 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.532744 credit to 6 from 7 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.670216 credit to 6 from 8 at IR 0.00729
+routed 1.7357 credit to 7 from 2 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 2.51644 credit to 8 from 2 at IR 0.00729
+routed 0.643268 credit to 9 from 8 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+pay credit
+c to pay 10.787 from 2 to 6
+cash: 154.767
+IOUS: 184.569 debt owed: 26.9787 assets: 0 deposits: 148.356 reserves: 0 debt_in: 29.8016 debt_out: 12.6519 cash: 154.767
+purpose: DEBT
+amount: 10.787
+routed 1.20296 credit to 0 from 2 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.28604 credit to 0 from 4 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.32356 credit to 1 from 2 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 2.51644 credit to 3 from 2 at IR 0.00729
+routed 1.49191 credit to 4 from 2 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 credit to 5 from 0 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.403359 credit to 5 from 1 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.246704 credit to 5 from 7 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.489 credit to 6 from 0 at IR 0.00729
+routed 1.489 credit to 6 from 1 at IR 0.00729
+routed 1.489 credit to 6 from 3 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.489 credit to 6 from 4 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.650063 credit to 6 from 5 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.489 credit to 6 from 7 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.489 credit to 6 from 8 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.7357 credit to 7 from 2 at IR 0.00729
+routed 2.51644 credit to 8 from 2 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.02744 credit to 9 from 3 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.02744 credit to 9 from 8 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 credit to 0 from 9 at IR 0.0081
+routed 0.568803 credit to 1 from 9 at IR 0.00764516
+routed 0.283125 credit to 4 from 9 at IR 0.0081
+routed 1.20296 credit to 6 from 5 at IR 0.0081
+pay credit
+c to pay 1.96734 from 2 to 7
+cash: 154.767
+IOUS: 184.569 debt owed: 27.0653 assets: 0 deposits: 148.356 reserves: 0 debt_in: 29.8016 debt_out: 1.95153 cash: 154.767
+purpose: DEBT
+amount: 1.96734
+routed 0.231638 credit to 3 from 2 at IR 0.00729
+routed 1.7357 credit to 7 from 2 at IR 0.00729
+routed 0.231638 credit to 7 from 3 at IR 0.00729
+pay credit
+c to pay 20.8366 from 8 to 2
+cash: 29.7513
+IOUS: 35.5487 debt owed: 26.4666 assets: 0 deposits: 0.0228846 reserves: 0 debt_in: 0 debt_out: 20.6692 cash: 29.7513
+purpose: DEBT
+amount: 20.8366
+routed 1.20296 credit to 0 from 9 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.1435 credit to 2 from 4 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 2.23162 credit to 2 from 6 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 2.23162 credit to 2 from 7 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 2.23162 credit to 2 from 9 at IR 0.00729
+routed 1.20296 credit to 5 from 8 at IR 0.00729
+routed 0.742619 credit to 6 from 5 at IR 0.00729
+routed 1.489 credit to 6 from 8 at IR 0.00729
+routed 1.7357 credit to 7 from 8 at IR 0.00729
+routed 0.495915 credit to 7 from 9 at IR 0.00729
+routed 5.074 credit to 9 from 8 at IR 0.00729
+routed 0.460341 credit to 2 from 0 at IR 0.00729
+routed 0.764515 credit to 2 from 8 at IR 0.00764516
+routed 1.1435 credit to 4 from 9 at IR 0.0081
+routed 0.460341 credit to 0 from 5 at IR 0.00729
+routed 2.51644 credit to 2 from 8 at IR 0.00729
+routed 1.20296 credit to 2 from 0 at IR 0.0081
+routed 2.51644 credit to 2 from 8 at IR 0.0081
+pay credit
+c to pay 9.48733 from 5 to 0
+cash: 99.3949
+IOUS: 107.313 debt owed: 19.9361 assets: 0 deposits: 77.6771 reserves: 0 debt_in: 0 debt_out: 18.5435 cash: 99.3949
+purpose: DEBT
+amount: 9.48733
+routed 1.20296 credit to 0 from 1 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.20296 credit to 0 from 2 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.20296 credit to 0 from 3 at IR 0.00729
+routed 1.20296 credit to 0 from 6 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 credit to 0 from 7 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 credit to 0 from 9 at IR 0.00729
+routed 0.0448489 credit to 1 from 2 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.489 credit to 6 from 5 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.170495 credit to 6 from 8 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.00111 credit to 7 from 5 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.31444 credit to 9 from 5 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.24781 credit to 2 from 7 at IR 0.0081
+routed 0.754752 credit to 1 from 9 at IR 0.00764516
+routed 0.742619 credit to 0 from 5 at IR 0.00729
+routed 1.07042 credit to 3 from 5 at IR 0.00764516
+routed 1.20296 credit to 7 from 5 at IR 0.00729
+routed 0.170495 credit to 8 from 5 at IR 0.00729
+routed 0.643268 credit to 9 from 5 at IR 0.00764516
+routed 1.20296 credit to 0 from 5 at IR 0.00764516
+routed 0.403359 credit to 1 from 5 at IR 0.0081
+routed 0.246704 credit to 7 from 5 at IR 0.0081
+routed 0.323995 credit to 0 from 6 at IR 0.00729
+routed 0.13254 credit to 3 from 6 at IR 0.0081
+pay credit
+c to pay 9.20632 from 5 to 2
+cash: 99.3949
+IOUS: 101.63 debt owed: 14.3296 assets: 0 deposits: 77.6771 reserves: 0 debt_in: 0 debt_out: 9.13235 cash: 99.3949
+purpose: DEBT
+amount: 9.20632
+routed 1.32356 credit to 1 from 7 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 2.23162 credit to 2 from 3 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 2.23162 credit to 2 from 7 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 2.23162 credit to 2 from 9 at IR 0.00729
+routed 1.489 credit to 6 from 5 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.7357 credit to 7 from 5 at IR 0.00729
+routed 0.13254 credit to 7 from 6 at IR 0.00729
+routed 1.7357 credit to 7 from 8 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.13914 credit to 7 from 9 at IR 0.00729
+routed 4.24591 credit to 9 from 5 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.32356 credit to 2 from 1 at IR 0.00764516
+routed 1.7357 credit to 8 from 5 at IR 0.00729
+routed 1.35646 credit to 3 from 6 at IR 0.0081
+routed 1.18791 credit to 2 from 7 at IR 0.00729
+routed 0.875159 credit to 3 from 9 at IR 0.0081
+loop done
+Epoch----------------3
+purpose: ASSET
+amount: 3.90533
+routed 2.23162 credit to 2 from 7 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 2.23162 collateral from 2
+routed 1.67371 collateral from 7
+paid assets 0
+cost recorded: -0.0180761
+purpose: ASSET
+amount: 2.40592
+routed 1.20296 collateral from 0
+routed 1.20296 collateral from 1
+routed 1.20296 credit to 1 from 0 at IR 0.00764516
+paid assets 0
+cost recorded: -0.00919682
+purpose: ASSET
+amount: 1.408
+routed 1.408 collateral from 9
+paid assets 0
+purpose: ASSET
+amount: 3.90533
+routed 1.38889 collateral from 2
+routed 2.51644 credit to 3 from 6 at IR 0.00729
+routed 2.51644 collateral from 3
+routed 0.284825 credit to 6 from 4 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.284825 credit to 4 from 2 at IR 0.00764516
+routed 2.23162 credit to 6 from 2 at IR 0.00764516
+paid assets 0
+cost recorded: -0.0192386
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 2.978
+routed 2.978 collateral from 1
+paid assets 0
+purpose: ASSET
+amount: 0
+paid assets 0
+purpose: ASSET
+amount: 5.662
+routed 1.20296 credit to 0 from 8 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.20296 collateral from 0
+routed 4.45904 collateral from 8
+paid assets 0
+cost recorded: -0.00919682
+purpose: ASSET
+amount: 5.662
+routed 5.662 collateral from 3
+paid assets 0
+purpose: ASSET
+amount: 2.978
+routed 1.20296 credit to 0 from 6 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.20296 collateral from 0
+routed 1.32356 credit to 1 from 6 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 1.32356 collateral from 1
+routed 0.451484 collateral from 6
+paid assets 0
+cost recorded: -0.0204648
+nodenum: 0 default rate: 0
+nodenum: 1 default rate: 0
+nodenum: 2 default rate: 0
+nodenum: 3 default rate: 0
+nodenum: 4 default rate: 0
+nodenum: 5 default rate: 0
+nodenum: 6 default rate: 0
+nodenum: 7 default rate: 0
+nodenum: 8 default rate: 0
+nodenum: 9 default rate: 0
+asset R: 0.0461774 asset V: 0.447214 credit R: 0.01 credit V: 0.01
+node 0 theta 1 portfolio size 11.9395 lambda 1.23089 assets 0.187578 wealth 9.69991
+want assets 2.23958
+node 1 theta 0.8 portfolio size 14.89 lambda 1.5625 assets 0.2 wealth 9.5296
+want assets 2.978
+asset R: 0.0450738 asset V: 0.447214 credit R: 0.01 credit V: 0.01
+node 2 theta 0.6 portfolio size 19.1419 lambda 2.04228 assets 0.183919 wealth 9.3728
+want assets 3.52056
+node 3 theta 0.4 portfolio size 28.31 lambda 3.125 assets 0.2 wealth 9.0592
+want assets 5.662
+node 4 theta 0.2 portfolio size 50.74 lambda 6.25 assets 0.2 wealth 8.1184
+want assets 10.148
+node 5 theta 1 portfolio size 11.9371 lambda 1.25 assets 0.2 wealth 9.54971
+want assets 2.38743
+asset R: 0.043128 asset V: 0.447214 credit R: 0.01 credit V: 0.01
+node 6 theta 0.8 portfolio size 14.5953 lambda 1.51955 assets 0.177388 wealth 9.60498
+want assets 2.58902
+asset R: 0.0453714 asset V: 0.447214 credit R: 0.01 credit V: 0.01
+node 7 theta 0.6 portfolio size 19.1975 lambda 2.04476 assets 0.184909 wealth 9.38861
+want assets 3.54979
+asset R: 0.0483757 asset V: 0.447214 credit R: 0.01 credit V: 0.01
+node 8 theta 0.4 portfolio size 27.6063 lambda 3.1047 assets 0.194768 wealth 8.89178
+want assets 5.37682
+node 9 theta 0.2 portfolio size 51.2023 lambda 6.25 assets 0.2 wealth 8.19237
+want assets 10.2405
+node 0 requests 0
+node 1 requests 0
+node 2 requests 0
+node 3 requests 0
+node 4 requests 12.6378
+node 5 requests 0
+node 6 requests 0
+node 7 requests 0
+node 8 requests 1.92021
+node 9 requests 0
+cpayout 1.1735 from 0 to 6
+cpayout 1.49985 from 1 to 6
+cpayout 2.30015 from 2 to 7
+cpayout 1.504 from 2 to 4
+cpayout 2.76812 from 2 to 3
+cpayout 6.0487 from 2 to 4
+cpayout 1.21216 from 2 to 0
+cpayout 0.0451918 from 2 to 1
+cpayout 3.17192 from 2 to 0
+cpayout 1.37947 from 2 to 1
+cpayout 2.79199 from 2 to 7
+cpayout 3.84721 from 2 to 3
+cpayout 1.21173 from 3 to 0
+cpayout 2.24868 from 3 to 2
+cpayout 0.153519 from 3 to 9
+cpayout 0.233327 from 3 to 7
+cpayout 0.865244 from 4 to 2
+cpayout 1.50106 from 4 to 6
+cpayout 3.10857 from 4 to 9
+cpayout 1.78806 from 4 to 6
+cpayout 0.288227 from 4 to 0
+cpayout 0.748033 from 5 to 6
+cpayout 1.00921 from 5 to 7
+cpayout 2.90345 from 5 to 6
+cpayout 5.6054 from 5 to 9
+cpayout 4.40451 from 5 to 6
+cpayout 2.75757 from 5 to 7
+cpayout 0.133506 from 6 to 7
+cpayout 2.42541 from 6 to 0
+cpayout 2.53479 from 6 to 3
+cpayout 1.33428 from 6 to 1
+cpayout 1.41531 from 6 to 9
+cpayout 2.2497 from 7 to 2
+cpayout 6.74706 from 7 to 2
+cpayout 0.537059 from 7 to 6
+cpayout 1.2127 from 7 to 0
+cpayout 2.03744 from 7 to 6
+cpayout 1.33428 from 7 to 1
+cpayout 1.50106 from 8 to 6
+cpayout 0.503364 from 8 to 5
+cpayout 1.67286 from 8 to 6
+cpayout 1.80647 from 8 to 9
+cpayout 1.74976 from 8 to 7
+cpayout 3.84782 from 8 to 6
+cpayout 2.45466 from 8 to 9
+cpayout 1.21216 from 8 to 0
+cpayout 3.49812 from 8 to 7
+cpayout 7.56565 from 8 to 9
+cpayout 1.64697 from 9 to 7
+cpayout 4.49577 from 9 to 2
+cpayout 1.2127 from 9 to 0
+cpayout 2.42443 from 9 to 0
+active status: -1 from node 0 to node 1
+active status: 0 from node 0 to node 2
+active status: 0 from node 0 to node 3
+active status: -1 from node 0 to node 4
+active status: 1 from node 0 to node 5
+active status: 0 from node 0 to node 6
+active status: 0 from node 0 to node 7
+active status: 0 from node 0 to node 8
+active status: 0 from node 0 to node 9
+node 0's' inactive budget 7.7797 active budget 1.92021
+active status: -1 from node 1 to node 0
+active status: 0 from node 1 to node 2
+active status: -1 from node 1 to node 3
+active status: -1 from node 1 to node 4
+active status: -1 from node 1 to node 5
+active status: 0 from node 1 to node 6
+active status: 0 from node 1 to node 7
+active status: -1 from node 1 to node 8
+active status: -1 from node 1 to node 9
+node 1's' inactive budget 11.912 active budget 0
+active status: -1 from node 2 to node 0
+active status: -1 from node 2 to node 1
+active status: 0 from node 2 to node 3
+active status: 0 from node 2 to node 4
+active status: 1 from node 2 to node 5
+active status: -1 from node 2 to node 6
+active status: 0 from node 2 to node 7
+active status: 1 from node 2 to node 8
+active status: 0 from node 2 to node 9
+node 2's' inactive budget 1.06327 active budget 14.5581
+active status: -1 from node 3 to node 0
+active status: -1 from node 3 to node 1
+active status: 0 from node 3 to node 2
+active status: -1 from node 3 to node 4
+active status: -1 from node 3 to node 5
+active status: 0 from node 3 to node 6
+active status: -1 from node 3 to node 7
+active status: -1 from node 3 to node 8
+active status: -1 from node 3 to node 9
+node 3's' inactive budget 22.648 active budget 0
+active status: -1 from node 4 to node 0
+active status: -1 from node 4 to node 1
+active status: 0 from node 4 to node 2
+active status: -1 from node 4 to node 3
+active status: -1 from node 4 to node 5
+active status: -1 from node 4 to node 6
+active status: -1 from node 4 to node 7
+active status: -1 from node 4 to node 8
+active status: -1 from node 4 to node 9
+node 4's' inactive budget 40.592 active budget 0
+active status: -1 from node 5 to node 0
+active status: -1 from node 5 to node 1
+active status: 1 from node 5 to node 2
+active status: -1 from node 5 to node 3
+active status: -1 from node 5 to node 4
+active status: -1 from node 5 to node 6
+active status: -1 from node 5 to node 7
+active status: 0 from node 5 to node 8
+active status: -1 from node 5 to node 9
+node 5's' inactive budget 7.62949 active budget 1.92021
+active status: 0 from node 6 to node 0
+active status: 0 from node 6 to node 1
+active status: 1 from node 6 to node 2
+active status: -1 from node 6 to node 3
+active status: 0 from node 6 to node 4
+active status: 0 from node 6 to node 5
+active status: 0 from node 6 to node 7
+active status: 0 from node 6 to node 8
+active status: -1 from node 6 to node 9
+node 6's' inactive budget 0 active budget 12.0062
+active status: -1 from node 7 to node 0
+active status: -1 from node 7 to node 1
+active status: 0 from node 7 to node 2
+active status: -1 from node 7 to node 3
+active status: -1 from node 7 to node 4
+active status: 0 from node 7 to node 5
+active status: -1 from node 7 to node 6
+active status: 0 from node 7 to node 8
+active status: 0 from node 7 to node 9
+node 7's' inactive budget 13.7275 active budget 1.92021
+active status: -1 from node 8 to node 0
+active status: -1 from node 8 to node 1
+active status: -1 from node 8 to node 2
+active status: -1 from node 8 to node 3
+active status: -1 from node 8 to node 4
+active status: -1 from node 8 to node 5
+active status: -1 from node 8 to node 6
+active status: -1 from node 8 to node 7
+active status: -1 from node 8 to node 9
+node 8's' inactive budget 22.2294 active budget 0
+active status: -1 from node 9 to node 0
+active status: -1 from node 9 to node 1
+active status: 1 from node 9 to node 2
+active status: -1 from node 9 to node 3
+active status: 0 from node 9 to node 4
+active status: 0 from node 9 to node 5
+active status: 0 from node 9 to node 6
+active status: -1 from node 9 to node 7
+active status: 0 from node 9 to node 8
+node 9's' inactive budget 26.4038 active budget 14.5581
+shock done 0.619405
+node 9 deposit shock 51.9835 cash 115.994 credit 13.5928 assets 1.408 leveraged 0
+node 7 deposit shock -75.6608 cash 95.4399 credit 17.4979 assets 3.90533 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 75.6608
+routed 75.6608 collateral from 7
+node 6 deposit shock 191.77 cash 204.185 credit 10.5173 assets 2.978 leveraged 0
+node 8 deposit shock 0.0159472 cash 19.7547 credit 20.7539 assets 5.662 leveraged 0
+node 0 deposit shock 863.361 cash 1223.48 credit 21.1065 assets 2.40592 leveraged 0
+node 2 deposit shock 4.83261 cash 156.684 credit 2.56855 assets 3.90533 leveraged 1
+node 4 deposit shock -30.7996 cash 39.8262 credit 63.5766 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 30.7996
+routed 30.7996 collateral from 4
+node 5 deposit shock -55.9523 cash 99.3949 credit 11.9149 assets 0 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 55.9523
+routed 55.9523 collateral from 5
+node 3 deposit shock 161.142 cash 299.696 credit 19.5919 assets 5.662 leveraged 0
+node 1 deposit shock -41.5463 cash 114.59 credit 22.0379 assets 2.978 leveraged 0
+pay deposit
+purpose: DEBT
+amount: 41.5463
+routed 41.5463 collateral from 1
+pay credit
+c to pay 5.6054 from 5 to 9
+cash: 43.4427
+IOUS: 43.9424 debt owed: 12.6678 assets: 0 deposits: 21.7248 reserves: 0 debt_in: 0.499721 debt_out: 12.6678 cash: 43.4427
+purpose: DEBT
+amount: 5.6054
+routed 1.37875 credit to 1 from 5 at IR 0.006561
+routed 0.238134 credit to 2 from 5 at IR 0.0189048
+contract is: 0.00729 routed IR: 0.0189048
+routed 0.039689 credit to 2 from 6 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 2.7155 credit to 3 from 5 at IR 0.0193596
+contract is: 0.006561 routed IR: 0.0193596
+routed 0.424406 credit to 4 from 5 at IR 0.0068794
+contract is: 0.006561 routed IR: 0.0068794
+routed 0.039689 credit to 6 from 5 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.531099 credit to 8 from 5 at IR 0.0189048
+contract is: 0.006561 routed IR: 0.0189048
+routed 1.37875 credit to 9 from 1 at IR 0.006561
+routed 0.277823 credit to 9 from 2 at IR 0.006561
+routed 2.7155 credit to 9 from 3 at IR 0.006561
+routed 0.424406 credit to 9 from 4 at IR 0.00696576
+contract is: 0.006561 routed IR: 0.00696576
+routed 0.277823 credit to 9 from 5 at IR 0.006561
+routed 0.531099 credit to 9 from 8 at IR 0.006561
+pay credit
+c to pay 2.75757 from 5 to 7
+cash: 43.4427
+IOUS: 43.9424 debt owed: 12.7129 assets: 0 deposits: 21.7248 reserves: 0 debt_in: 0.499721 debt_out: 7.10749 cash: 43.4427
+purpose: DEBT
+amount: 2.75757
+routed 1.37875 credit to 1 from 5 at IR 0.00764516
+contract is: 0.006561 routed IR: 0.00764516
+routed 1.20698 credit to 4 from 5 at IR 0.00764516
+contract is: 0.006561 routed IR: 0.00764516
+routed 0.171843 credit to 6 from 5 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 1.37875 credit to 7 from 1 at IR 0.0193596
+contract is: 0.006561 routed IR: 0.0193596
+routed 1.20698 credit to 7 from 4 at IR 0.00764516
+contract is: 0.006561 routed IR: 0.00764516
+routed 0.171843 credit to 7 from 6 at IR 0.006561
+pay credit
+c to pay 4.40451 from 5 to 6
+cash: 43.4427
+IOUS: 43.9424 debt owed: 12.7336 assets: 0 deposits: 21.7248 reserves: 0 debt_in: 0.499721 debt_out: 4.37068 cash: 43.4427
+purpose: DEBT
+amount: 4.40451
+routed 2.14139 credit to 4 from 5 at IR 0.00696576
+contract is: 0.006561 routed IR: 0.00696576
+routed 0.171843 credit to 6 from 2 at IR 0.0189048
+contract is: 0.0076545 routed IR: 0.0189048
+routed 2.14139 credit to 6 from 4 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.171843 credit to 6 from 5 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 1.75547 credit to 6 from 8 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.124273 credit to 6 from 9 at IR 0.0193596
+contract is: 0.0076545 routed IR: 0.0193596
+routed 1.81345 credit to 8 from 5 at IR 0.0193596
+contract is: 0.006561 routed IR: 0.0193596
+routed 0.277823 credit to 9 from 5 at IR 0.006561
+routed 0.057982 credit to 9 from 8 at IR 0.0068794
+contract is: 0.006561 routed IR: 0.0068794
+routed 0.039689 credit to 6 from 2 at IR 0.00764516
+routed 0.211532 credit to 2 from 9 at IR 0.006561
+pay credit
+c to pay 1.21216 from 8 to 0
+cash: 23.2777
+IOUS: 25.6223 debt owed: 18.8466 assets: 0 deposits: 0.0388318 reserves: 0 debt_in: 0 debt_out: 16.502 cash: 23.2777
+purpose: DEBT
+amount: 1.21216
+routed 1.21216 credit to 0 from 8 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+pay credit
+c to pay 3.49812 from 8 to 7
+cash: 23.2777
+IOUS: 25.6223 debt owed: 18.8558 assets: 0 deposits: 0.0388318 reserves: 0 debt_in: 0 debt_out: 15.2991 cash: 23.2777
+purpose: DEBT
+amount: 3.49812
+routed 3.19555 credit to 3 from 8 at IR 0.00764516
+contract is: 0.006561 routed IR: 0.00764516
+routed 1.08195 credit to 6 from 3 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.302569 credit to 6 from 9 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 2.1136 credit to 7 from 3 at IR 0.0193596
+contract is: 0.006561 routed IR: 0.0193596
+routed 1.38452 credit to 7 from 6 at IR 0.0193596
+contract is: 0.006561 routed IR: 0.0193596
+routed 0.302569 credit to 9 from 8 at IR 0.00696576
+contract is: 0.006561 routed IR: 0.00696576
+pay credit
+c to pay 7.56565 from 8 to 9
+cash: 23.2777
+IOUS: 25.6223 debt owed: 18.8825 assets: 0 deposits: 0.0388318 reserves: 0 debt_in: 0 debt_out: 11.8277 cash: 23.2777
+purpose: DEBT
+amount: 7.56565
+routed 1.92021 credit to 0 from 8 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 1.37875 credit to 1 from 0 at IR 0.00727312
+contract is: 0.006561 routed IR: 0.00727312
+routed 0.314776 credit to 2 from 6 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.373023 credit to 2 from 8 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 1.02594 credit to 3 from 5 at IR 0.0193596
+contract is: 0.006561 routed IR: 0.0193596
+routed 1.06563 credit to 5 from 8 at IR 0.006561
+routed 0.171843 credit to 6 from 2 at IR 0.0193596
+contract is: 0.0076545 routed IR: 0.0193596
+routed 1.75547 credit to 6 from 8 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 1.92021 credit to 7 from 8 at IR 0.006561
+routed 0.541465 credit to 9 from 0 at IR 0.006561
+routed 1.37875 credit to 9 from 1 at IR 0.00727312
+contract is: 0.006561 routed IR: 0.00727312
+routed 0.277823 credit to 9 from 2 at IR 0.006561
+routed 2.10789 credit to 9 from 3 at IR 0.006561
+routed 0.277823 credit to 9 from 5 at IR 0.006561
+routed 0.277823 credit to 9 from 6 at IR 0.006561
+routed 1.74613 credit to 9 from 7 at IR 0.006561
+routed 0.531099 credit to 9 from 8 at IR 0.006561
+routed 1.08195 credit to 3 from 6 at IR 0.0081
+routed 0.238134 credit to 5 from 2 at IR 0.0189048
+routed 0.124273 credit to 9 from 6 at IR 0.0193596
+routed 0.302569 credit to 9 from 6 at IR 0.0081
+routed 0.174079 credit to 6 from 7 at IR 0.0193596
+pay credit
+c to pay 0.503364 from 8 to 5
+cash: 23.2777
+IOUS: 25.6223 debt owed: 18.9389 assets: 0 deposits: 0.0388318 reserves: 0 debt_in: 0 debt_out: 4.31843 cash: 23.2777
+purpose: DEBT
+amount: 0.503364
+routed 0.503364 credit to 5 from 8 at IR 0.0193596
+pay credit
+c to pay 3.84782 from 8 to 6
+cash: 23.2777
+IOUS: 25.1189 debt owed: 18.4392 assets: 0 deposits: 0.0388318 reserves: 0 debt_in: 0 debt_out: 3.81871 cash: 23.2777
+purpose: DEBT
+amount: 3.84782
+routed 0.00712286 credit to 3 from 8 at IR 0.0081
+contract is: 0.006561 routed IR: 0.0081
+routed 0.00712286 credit to 6 from 3 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.171843 credit to 6 from 7 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 1.75547 credit to 6 from 8 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.253277 credit to 6 from 9 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 1.55413 credit to 7 from 8 at IR 0.006561
+routed 0.531099 credit to 9 from 8 at IR 0.006561
+routed 0.171843 credit to 6 from 7 at IR 0.006561
+routed 1.21044 credit to 6 from 7 at IR 0.0193596
+routed 0.277823 credit to 6 from 9 at IR 0.006561
+pay credit
+c to pay 1.1735 from 0 to 6
+cash: 2088.33
+IOUS: 2102.12 debt owed: 3.08522 assets: 0 deposits: 2090.24 reserves: 0 debt_in: 10.6523 debt_out: 1.165 cash: 2088.33
+purpose: DEBT
+amount: 1.1735
+routed 0.171843 credit to 5 from 0 at IR 0.006561
+routed 0.171843 credit to 6 from 0 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.171843 credit to 6 from 5 at IR 0.0189048
+contract is: 0.0076545 routed IR: 0.0189048
+routed 0.171843 credit to 6 from 7 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.657968 credit to 6 from 9 at IR 0.0193596
+contract is: 0.0076545 routed IR: 0.0193596
+routed 0.171843 credit to 7 from 0 at IR 0.006561
+routed 0.657968 credit to 9 from 0 at IR 0.006561
+pay credit
+c to pay 2.42443 from 9 to 0
+cash: 168.849
+IOUS: 187.572 debt owed: 9.41545 assets: 0 deposits: 170.399 reserves: 0 debt_in: 4.64095 debt_out: 8.50421 cash: 168.849
+purpose: DEBT
+amount: 2.42443
+routed 0.709471 credit to 1 from 9 at IR 0.00696576
+contract is: 0.006561 routed IR: 0.00696576
+routed 0.171843 credit to 6 from 9 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 0.171843 credit to 5 from 9 at IR 0.006561
+routed 0.709471 credit to 0 from 1 at IR 0.00727312
+routed 1.19943 credit to 0 from 9 at IR 0.006561
+routed 0.171843 credit to 7 from 9 at IR 0.006561
+routed 0.171843 credit to 0 from 5 at IR 0.006561
+routed 0.171843 credit to 0 from 6 at IR 0.0081
+routed 0.171843 credit to 0 from 7 at IR 0.006561
+pay credit
+c to pay 4.49577 from 9 to 2
+cash: 168.849
+IOUS: 186.029 debt owed: 7.89085 assets: 0 deposits: 170.399 reserves: 0 debt_in: 4.64095 debt_out: 6.09829 cash: 168.849
+purpose: DEBT
+amount: 4.49577
+routed 0.354424 credit to 1 from 9 at IR 0.00696576
+contract is: 0.006561 routed IR: 0.00696576
+routed 0.354424 credit to 2 from 1 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.238134 credit to 2 from 3 at IR 0.0189048
+contract is: 0.00729 routed IR: 0.0189048
+routed 0.22638 credit to 2 from 4 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 0.238134 credit to 2 from 5 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.354424 credit to 2 from 6 at IR 0.0081
+contract is: 0.00729 routed IR: 0.0081
+routed 2.15835 credit to 2 from 8 at IR 0.0189048
+contract is: 0.00729 routed IR: 0.0189048
+routed 0.238134 credit to 2 from 9 at IR 0.00764516
+contract is: 0.00729 routed IR: 0.00764516
+routed 0.238134 credit to 3 from 9 at IR 0.0081
+contract is: 0.006561 routed IR: 0.0081
+routed 0.238134 credit to 5 from 9 at IR 0.006561
+routed 0.69811 credit to 6 from 9 at IR 0.0081
+contract is: 0.0076545 routed IR: 0.0081
+routed 2.11889 credit to 8 from 9 at IR 0.006561
+routed 0.344113 credit to 2 from 9 at IR 0.006561
+routed 0.22638 credit to 4 from 9 at IR 0.00696576
+routed 0.171843 credit to 2 from 6 at IR 0.0189048
+routed 0.0394594 credit to 8 from 9 at IR 0.00696576
+routed 0.171843 credit to 2 from 6 at IR 0.0193596
+pay credit
+c to pay 1.64697 from 9 to 7
+cash: 168.849
+IOUS: 185.419 debt owed: 7.31343 assets: 0 deposits: 170.399 reserves: 0 debt_in: 4.64095 debt_out: 1.63505 cash: 168.849
+purpose: DEBT
+amount: 1.64697
+routed 0.0726801 credit to 3 from 9 at IR 0.006561
+routed 0.0726801 credit to 7 from 3 at IR 0.006561
+routed 1.57429 credit to 7 from 9 at IR 0.006561
+pay credit
+c to pay 1.41531 from 6 to 9
+cash: 397.8
+IOUS: 413.179 debt owed: 8.45273 assets: 0 deposits: 396.183 reserves: 0 debt_in: 5.28457 debt_out: 7.78353 cash: 397.8
+purpose: DEBT
+amount: 1.41531
+routed 0.292082 credit to 9 from 6 at IR 0.0193596
+routed 1.12323 credit to 9 from 6 at IR 0.0081
+pay credit
+c to pay 1.33428 from 6 to 1
+cash: 397.8
+IOUS: 411.764 debt owed: 7.04766 assets: 0 deposits: 396.183 reserves: 0 debt_in: 5.28457 debt_out: 6.37846 cash: 397.8
+purpose: DEBT
+amount: 1.33428
+routed 0.00712286 credit to 1 from 3 at IR 0.00764516
+contract is: 0.006561 routed IR: 0.00764516
+routed 0.683444 credit to 7 from 6 at IR 0.006561
+routed 0.277823 credit to 9 from 6 at IR 0.0081
+contract is: 0.006561 routed IR: 0.0081
+routed 0.00712286 credit to 3 from 6 at IR 0.0081
+routed 0.643709 credit to 1 from 9 at IR 0.006561
+routed 0.683444 credit to 1 from 7 at IR 0.0193596
+routed 0.365886 credit to 9 from 6 at IR 0.0193596
+pay credit
+c to pay 2.53479 from 6 to 3
+cash: 397.8
+IOUS: 411.391 debt owed: 6.68537 assets: 0 deposits: 396.183 reserves: 0 debt_in: 5.28457 debt_out: 5.0549 cash: 397.8
+purpose: DEBT
+amount: 2.53479
+routed 0.238134 credit to 2 from 6 at IR 0.0193596
+contract is: 0.00729 routed IR: 0.0193596
+routed 2.01883 credit to 3 from 8 at IR 0.0081
+contract is: 0.006561 routed IR: 0.0081
+routed 0.277823 credit to 9 from 6 at IR 0.006561
+routed 2.01883 credit to 8 from 6 at IR 0.0081
+routed 0.277823 credit to 3 from 9 at IR 0.006561
+routed 0.238134 credit to 3 from 2 at IR 0.0189048
+pay credit
+c to pay 2.42541 from 6 to 0
+cash: 397.8
+IOUS: 409.372 debt owed: 4.68488 assets: 0 deposits: 396.183 reserves: 0 debt_in: 5.28457 debt_out: 2.53846 cash: 397.8
+purpose: DEBT
+amount: 2.42541

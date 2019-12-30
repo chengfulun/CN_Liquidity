@@ -161,7 +161,7 @@ void writePayoff (std::vector<PlayerInfo> &players, string outPath) {
 }
 
 int main(int argc, char* argv[]){
-    freopen("baseltest.txt","w",stdout);
+    freopen("mlev5.txt","w",stdout);
 	string json_folder = argv[1];
 	// cout<<json_folder<<endl;
 	int num_obs = atoi(argv[2]);
@@ -230,8 +230,8 @@ int main(int argc, char* argv[]){
  	double haircut = stod(config.haircut);
  	double initR = stod(config.initR);
  	double initV = stod(config.initV); 	
- 	bool outV = false;
- 	bool outResults = true;
+ 	bool outV = true;
+ 	bool outResults = false;
  	bool randThetas = false;
 
  	double value_bins = stod(config.value_bins);

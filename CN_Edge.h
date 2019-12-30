@@ -424,9 +424,9 @@ public:
 			return false;
 		}
 		if (round(precision*debt_current.find(interest_rate)->second->capacity)/precision < round(precision*current)/precision){
-			cout<<"error: invalid debt capacity"<<endl;
-			cout<<"IR is "<<interest_rate<<" capacity is "<< debt_current.find(interest_rate)->second->capacity << " amount is "<< current<<endl;
-			this->print();			
+			// cout<<"error: invalid debt capacity"<<endl;
+			// cout<<"IR is "<<interest_rate<<" capacity is "<< debt_current.find(interest_rate)->second->capacity << " amount is "<< current<<endl;
+			// this->print();			
 			return false;
 		}
 
