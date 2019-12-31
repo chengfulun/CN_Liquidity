@@ -12,10 +12,10 @@ LIBFORMAT  = static_pic
 #
 #------------------------------------------------------------
 # 	$(CCC) -g -c $(CCFLAGS) $(CPPFLAGS)
-CPLEXHOME = /home/frcheng/CPLEX/CPLEX_Studio128
+CPLEXHOME = /nfs/wellman_ls/frank/CPLEX/CPLEX_Studio128
+# /home/frcheng/CPLEX/CPLEX_Studio128
 
 CPLEXDIR = $(CPLEXHOME)/cplex/
-# /home/frcheng/CPLEX/CPLEX_Studio1228/cplex
 CONCERTDIR = $(CPLEXHOME)/concert/
 # $(CPLEXHOME)/concert
 # use for CAEN
