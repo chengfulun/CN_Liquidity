@@ -153,10 +153,17 @@ void writePayoff (std::vector<PlayerInfo> &players, string outPath) {
 	// puts(sb.GetString());
 	
 	FILE* fp = fopen(outPath.c_str(), "w"); // non-Windows use "w"
-	char writeBuffer[65536];
+	// StringBuffer sb;
+	char writeBuffer[65536];	
+	// PrettyWriter<StringBuffer> writer(sb);
 	FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-	Writer<FileWriteStream> writer1(os);
-	result.Accept(writer1);
+	PrettyWriter<FileWriteStream> writer(os);
+	result.Accept(writer);    // Accept() traverses the DOM and generates Handler events.
+	// puts(sb.GetString());
+	// char writeBuffer[65536];
+	// FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+	// Writer<FileWriteStream> writer1(os);
+	// result.Accept(writer1);
 	fclose(fp);
 }
 
